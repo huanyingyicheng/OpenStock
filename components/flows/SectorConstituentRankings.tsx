@@ -3,11 +3,7 @@
 import Link from 'next/link';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useI18n } from '@/components/I18nProvider';
-import { Button } from '@/components/ui/button';
 
-type ScopeTab = 'stocks' | 'sectors' | 'funds';
-type Market = 'all' | 'sha' | 'sza' | 'kcb' | 'cyb' | 'zxb';
-type SectorType = 'industry' | 'concept' | 'region';
 type Window = '1' | '3' | '5' | '10';
 type Metric = 'netInflow' | 'mainInflow' | 'mainOutflow' | 'turnover' | 'superLargeNet' | 'largeNet';
 type Order = 'desc' | 'asc';
@@ -56,12 +52,9 @@ function formatPct(value: number | null): string {
   return `${value.toFixed(2)}%`;
 }
 
-export default function FlowRankings() {
+export default function SectorConstituentRankings({ sectorCode }: { sectorCode: string }) {
   const { t, locale } = useI18n();
 
-  const [tab, setTab] = useState<ScopeTab>('stocks');
-  const [market, setMarket] = useState<Market>('all');
-  const [sectorType, setSectorType] = useState<SectorType>('industry');
   const [window, setWindow] = useState<Window>('1');
   const [metric, setMetric] = useState<Metric>('netInflow');
   const [order, setOrder] = useState<Order>('desc');
@@ -75,23 +68,14 @@ export default function FlowRankings() {
 
   const requestUrl = useMemo(() => {
     const params = new URLSearchParams();
-    if (tab === 'sectors') {
-      params.set('scope', 'sector');
-      params.set('sectorType', sectorType);
-    } else if (tab === 'funds') {
-      params.set('scope', 'fund');
-      params.set('market', market === 'sha' ? 'sha' : market === 'sza' ? 'sza' : 'all');
-    } else {
-      params.set('scope', 'stock');
-      params.set('market', market);
-    }
+    params.set('code', sectorCode);
     params.set('window', window);
     params.set('metric', metric);
     params.set('order', order);
     params.set('limit', String(limit));
     params.set('page', '1');
-    return `/api/flows/rank?${params.toString()}`;
-  }, [tab, sectorType, market, window, metric, order, limit]);
+    return `/api/flows/sector/constituents?${params.toString()}`;
+  }, [sectorCode, window, metric, order, limit]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -118,99 +102,19 @@ export default function FlowRankings() {
     return () => controller.abort();
   }, [requestUrl, locale]);
 
-  const marketOptions = useMemo(
-    () =>
-      [
-        { value: 'all', label: t('flows.market.all') },
-        { value: 'sha', label: t('flows.market.sha') },
-        { value: 'sza', label: t('flows.market.sza') },
-        { value: 'kcb', label: t('flows.market.kcb') },
-        { value: 'cyb', label: t('flows.market.cyb') },
-        { value: 'zxb', label: t('flows.market.zxb') },
-      ] as const,
-    [t]
-  );
-
-  const sectorTypeOptions = useMemo(
-    () =>
-      [
-        { value: 'industry', label: t('flows.sector.industry') },
-        { value: 'concept', label: t('flows.sector.concept') },
-        { value: 'region', label: t('flows.sector.region') },
-      ] as const,
-    [t]
-  );
-
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-2">
-        <Button
-          size="sm"
-          variant={tab === 'stocks' ? 'default' : 'outline'}
-          onClick={() => setTab('stocks')}
-        >
-          {t('flows.tabs.stocks')}
-        </Button>
-        <Button
-          size="sm"
-          variant={tab === 'sectors' ? 'default' : 'outline'}
-          onClick={() => setTab('sectors')}
-        >
-          {t('flows.tabs.sectors')}
-        </Button>
-        <Button
-          size="sm"
-          variant={tab === 'funds' ? 'default' : 'outline'}
-          onClick={() => setTab('funds')}
-        >
-          {t('flows.tabs.funds')}
-        </Button>
-
-        <div className="ml-auto flex flex-wrap items-center gap-3">
-          {updatedAt ? (
-            <span className="text-xs text-gray-500">
-              {t('flows.updatedAt')}: {updatedAt}
-            </span>
-          ) : null}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="text-base font-semibold text-gray-100">{t('flows.sectorDetail.constituents')}</h2>
+          <div className="text-xs text-gray-500">
+            {updatedAt ? `${t('flows.updatedAt')}: ${updatedAt}` : ''}
+            {total ? ` · ${t('flows.total')}: ${total}` : ''}
+          </div>
         </div>
       </div>
 
       <div className="flex flex-wrap items-end gap-3 rounded-lg border border-gray-800 bg-gray-900/40 p-3">
-        {tab === 'stocks' || tab === 'funds' ? (
-          <label className="flex flex-col gap-1 text-sm">
-            <span className="text-gray-400">{t('flows.filters.market')}</span>
-            <select
-              className="h-9 rounded-md border border-gray-800 bg-gray-950 px-3 text-gray-200"
-              value={market}
-              onChange={(e) => setMarket(e.target.value as Market)}
-            >
-              {(tab === 'funds'
-                ? marketOptions.filter((o) => o.value === 'all' || o.value === 'sha' || o.value === 'sza')
-                : marketOptions
-              ).map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </label>
-        ) : (
-          <label className="flex flex-col gap-1 text-sm">
-            <span className="text-gray-400">{t('flows.filters.sectorType')}</span>
-            <select
-              className="h-9 rounded-md border border-gray-800 bg-gray-950 px-3 text-gray-200"
-              value={sectorType}
-              onChange={(e) => setSectorType(e.target.value as SectorType)}
-            >
-              {sectorTypeOptions.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </label>
-        )}
-
         <label className="flex flex-col gap-1 text-sm">
           <span className="text-gray-400">{t('flows.filters.window')}</span>
           <select
@@ -267,21 +171,6 @@ export default function FlowRankings() {
       </div>
 
       <div className="rounded-lg border border-gray-800 overflow-hidden">
-        <div className="flex items-center justify-between bg-gray-950 px-4 py-3">
-          <div className="text-sm text-gray-400">
-            {t('flows.dataSource')}{' '}
-            <a
-              className="underline underline-offset-4 hover:text-teal-400"
-              href="https://data.eastmoney.com/zjlx/"
-              target="_blank"
-              rel="noreferrer"
-            >
-              Eastmoney
-            </a>
-          </div>
-          <div className="text-xs text-gray-500">{total ? `${t('flows.total')}: ${total}` : ''}</div>
-        </div>
-
         {loading ? (
           <div className="p-6 text-sm text-gray-400">{t('flows.loading')}</div>
         ) : error ? (
@@ -351,30 +240,7 @@ export default function FlowRankings() {
                     <tr key={`${row.rank}-${row.code}`} className="hover:bg-gray-900/40">
                       <td className="px-4 py-3 text-gray-400">{row.rank}</td>
                       <td className="px-4 py-3">
-                        {tab === 'sectors' ? (
-                          <div className="space-y-1">
-                            <Link
-                              className="text-gray-100 hover:text-teal-400 underline-offset-4 hover:underline"
-                              href={`/flows/sector/${encodeURIComponent(row.code)}`}
-                            >
-                              {row.name || row.code}
-                            </Link>
-                            <div className="flex items-center gap-3 text-xs text-gray-500">
-                              <Link
-                                className="hover:text-teal-400 underline underline-offset-4"
-                                href={`/flows/sector/${encodeURIComponent(row.code)}#stocks`}
-                              >
-                                {t('flows.sectorDetail.constituents')}
-                              </Link>
-                              <Link
-                                className="hover:text-teal-400 underline underline-offset-4"
-                                href={`/flows/sector/${encodeURIComponent(row.code)}#funds`}
-                              >
-                                {t('flows.sectorDetail.relatedFunds')}
-                              </Link>
-                            </div>
-                          </div>
-                        ) : row.tvSymbol ? (
+                        {row.tvSymbol ? (
                           <Link
                             className="text-gray-100 hover:text-teal-400 underline-offset-4 hover:underline"
                             href={`/stocks/${encodeURIComponent(row.tvSymbol)}`}
@@ -386,27 +252,17 @@ export default function FlowRankings() {
                         )}
                       </td>
                       <td className="px-4 py-3 text-gray-400">{row.code || '-'}</td>
-                      <td className="px-4 py-3 text-right text-gray-200">
-                        {formatMoney(row.turnover, locale)}
-                      </td>
-                      <td className={`px-4 py-3 text-right ${flowClass}`}>
-                        {formatMoney(row.netInflow, locale)}
-                      </td>
-                      <td className={`px-4 py-3 text-right ${mainInflowClass}`}>
-                        {formatMoney(mainInflow, locale)}
-                      </td>
-                      <td className={`px-4 py-3 text-right ${mainOutflowClass}`}>
-                        {formatMoney(mainOutflow, locale)}
-                      </td>
+                      <td className="px-4 py-3 text-right text-gray-200">{formatMoney(row.turnover, locale)}</td>
+                      <td className={`px-4 py-3 text-right ${flowClass}`}>{formatMoney(row.netInflow, locale)}</td>
+                      <td className={`px-4 py-3 text-right ${mainInflowClass}`}>{formatMoney(mainInflow, locale)}</td>
+                      <td className={`px-4 py-3 text-right ${mainOutflowClass}`}>{formatMoney(mainOutflow, locale)}</td>
                       <td className={`px-4 py-3 text-right ${superLargeClass}`}>
                         {formatMoney(typeof row.superLargeNet === 'number' ? row.superLargeNet : null, locale)}
                       </td>
                       <td className={`px-4 py-3 text-right ${largeClass}`}>
                         {formatMoney(typeof row.largeNet === 'number' ? row.largeNet : null, locale)}
                       </td>
-                      <td className={`px-4 py-3 text-right ${changeClass}`}>
-                        {formatPct(row.changePct)}
-                      </td>
+                      <td className={`px-4 py-3 text-right ${changeClass}`}>{formatPct(row.changePct)}</td>
                     </tr>
                   );
                 })}
@@ -418,3 +274,4 @@ export default function FlowRankings() {
     </div>
   );
 }
+

@@ -21,6 +21,7 @@ export const enMessages = {
     tabs: {
       stocks: 'Stocks',
       sectors: 'Sectors',
+      funds: 'Funds (ETF)',
     },
     filters: {
       market: 'Market',
@@ -51,6 +52,10 @@ export const enMessages = {
     },
     metric: {
       netInflow: 'Net Inflow',
+      mainInflow: 'Main Inflow',
+      mainOutflow: 'Main Outflow',
+      superLargeNet: 'Super-large Net',
+      largeNet: 'Large Net',
       turnover: 'Turnover',
     },
     order: {
@@ -69,7 +74,20 @@ export const enMessages = {
       code: 'Code',
       turnover: 'Turnover',
       netInflow: 'Net Inflow',
+      mainInflow: 'Main Inflow',
+      mainOutflow: 'Main Outflow',
+      superLargeNet: 'Super-large Net',
+      largeNet: 'Large Net',
       changePct: 'Change',
+    },
+    sectorDetail: {
+      title: 'Sector',
+      back: 'Back to rankings',
+      subtitle: 'Constituent stocks are fetched from Eastmoney sector boards; related funds are matched by name.',
+      relatedFunds: 'Related funds',
+      noFunds: 'No related funds found.',
+      fundsTip: 'Tip: This list is matched by keyword; click to open the fund as a tradable symbol page.',
+      constituents: 'Constituent stocks rankings',
     },
   },
   stock: {

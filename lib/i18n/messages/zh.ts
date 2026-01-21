@@ -21,6 +21,7 @@ export const zhMessages = {
     tabs: {
       stocks: '个股',
       sectors: '板块',
+      funds: '基金（ETF）',
     },
     filters: {
       market: '市场',
@@ -51,6 +52,10 @@ export const zhMessages = {
     },
     metric: {
       netInflow: '净流入额',
+      mainInflow: '主力流入',
+      mainOutflow: '主力流出',
+      superLargeNet: '超大单净额',
+      largeNet: '大单净额',
       turnover: '成交额',
     },
     order: {
@@ -69,7 +74,20 @@ export const zhMessages = {
       code: '代码',
       turnover: '成交额',
       netInflow: '净流入',
+      mainInflow: '主力流入',
+      mainOutflow: '主力流出',
+      superLargeNet: '超大单净额',
+      largeNet: '大单净额',
       changePct: '涨跌幅',
+    },
+    sectorDetail: {
+      title: '板块',
+      back: '返回资金流排行',
+      subtitle: '个股成分来自东方财富板块成分；相关基金根据板块名称关键词匹配。',
+      relatedFunds: '相关基金',
+      noFunds: '未找到相关基金。',
+      fundsTip: '提示：基金列表为关键词匹配结果，点击可作为可交易代码打开详情页。',
+      constituents: '成分股排行',
     },
   },
   stock: {

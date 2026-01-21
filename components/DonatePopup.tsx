@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Heart, Github } from 'lucide-react';
+import { useI18n } from '@/components/I18nProvider';
 
 const DONATE_POPUP_KEY = 'opendevsociety-donate-popup-dismissed';
 const DONATE_POPUP_DELAY = 3000; // Show after 3 seconds
@@ -19,6 +20,7 @@ const GITHUB_SPONSOR_URL = 'https://github.com/sponsors/ravixalgorithm';
 
 export default function DonatePopup() {
     const [open, setOpen] = useState(false);
+    const { t } = useI18n();
 
     useEffect(() => {
         // Check if user has dismissed popup
@@ -67,16 +69,19 @@ export default function DonatePopup() {
                         <div className="p-2 bg-teal-500/20 rounded-lg">
                             <Heart className="h-6 w-6 text-teal-400 fill-teal-400" />
                         </div>
-                        <DialogTitle className="text-2xl font-bold text-gray-100">
-                            Keep OpenStock Free
-                        </DialogTitle>
+                    <DialogTitle className="text-2xl font-bold text-gray-100">
+                            {t('donate.title')}
+                    </DialogTitle>
                     </div>
                     <DialogDescription className="text-gray-400 text-base leading-relaxed pt-2">
-                        Your overwhelming love for OpenStock and Open Dev Society has helped us grow, 
-                        but we're hitting Vercel's free tier limits. 
-                        <br /><br />
-                        Help us keep OpenStock free and accessible for everyone by supporting us on GitHub Sponsors. 
-                        Every contribution, no matter how small, makes a difference! 💙
+                        {t('donate.description')
+                          .split('\n')
+                          .map((line, idx) => (
+                            <React.Fragment key={idx}>
+                              {line}
+                              <br />
+                            </React.Fragment>
+                          ))}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -86,19 +91,19 @@ export default function DonatePopup() {
                         className="flex-1 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-semibold h-11 transition-all duration-200 transform hover:scale-105"
                     >
                         <Github className="h-4 w-4 mr-2" />
-                        Sponsor on GitHub
+                        {t('donate.sponsor')}
                     </Button>
                     <Button
                         onClick={handleDismiss}
                         variant="outline"
                         className="flex-1 border-teal-600/50 text-teal-400 hover:bg-teal-600/10 hover:text-teal-300 h-11 transition-all duration-200"
                     >
-                        Maybe Later
+                        {t('common.later')}
                     </Button>
                 </div>
 
                 <p className="text-xs text-gray-500 text-center mt-4">
-                    This popup won't appear again for 24 hours after dismissing
+                    {t('donate.cooldown')}
                 </p>
             </DialogContent>
         </Dialog>

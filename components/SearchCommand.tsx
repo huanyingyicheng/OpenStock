@@ -7,12 +7,14 @@ import {Loader2,  TrendingUp} from "lucide-react";
 import Link from "next/link";
 import {searchStocks} from "@/lib/actions/finnhub.actions";
 import {useDebounce} from "@/hooks/useDebounce";
+import {useI18n} from "@/components/I18nProvider";
 
 export default function SearchCommand({ renderAs = 'button', label = 'Add stock', initialStocks }: SearchCommandProps) {
     const [open, setOpen] = useState(false)
     const [searchTerm, setSearchTerm] = useState("")
     const [loading, setLoading] = useState(false)
     const [stocks, setStocks] = useState<StockWithWatchlistStatus[]>(initialStocks);
+    const { t } = useI18n();
 
     const isSearchMode = !!searchTerm.trim();
     const displayStocks = isSearchMode ? stocks : stocks?.slice(0, 10);
@@ -71,20 +73,20 @@ export default function SearchCommand({ renderAs = 'button', label = 'Add stock'
             )}
             <CommandDialog open={open} onOpenChange={setOpen} className="search-dialog">
                 <div className="search-field">
-                    <CommandInput value={searchTerm} onValueChange={setSearchTerm} placeholder="Search stocks..." className="search-input" />
+                    <CommandInput value={searchTerm} onValueChange={setSearchTerm} placeholder={t('search.placeholder')} className="search-input" />
                     {loading && <Loader2 className="search-loader" />}
                 </div>
                 <CommandList className="search-list">
                     {loading ? (
-                        <CommandEmpty className="search-list-empty">Loading stocks...</CommandEmpty>
+                        <CommandEmpty className="search-list-empty">{t('search.loading')}</CommandEmpty>
                     ) : displayStocks?.length === 0 ? (
                         <div className="search-list-indicator">
-                            {isSearchMode ? 'No results found' : 'No stocks available'}
+                            {isSearchMode ? t('search.noResults') : t('search.noStocks')}
                         </div>
                     ) : (
                         <ul>
                             <div className="search-count">
-                                {isSearchMode ? 'Search results' : 'Popular stocks'}
+                                {isSearchMode ? t('search.results') : t('search.popular')}
                                 {` `}({displayStocks?.length || 0})
                             </div>
                             {displayStocks?.map((stock, i) => (

@@ -8,6 +8,7 @@ import {usePathname} from "next/navigation";
 import SearchCommand from "@/components/SearchCommand";
 import { Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {useI18n} from "@/components/I18nProvider";
 
 // Create context for popup state
 const DonatePopupContext = createContext<{
@@ -20,6 +21,7 @@ export const useDonatePopup = () => useContext(DonatePopupContext);
 
 const NavItems = ({initialStocks}: { initialStocks: StockWithWatchlistStatus[]}) => {
     const pathname = usePathname()
+    const { t } = useI18n();
 
     const isActive = (path: string) => {
         if (path ==='/') return pathname === '/'
@@ -35,19 +37,19 @@ const NavItems = ({initialStocks}: { initialStocks: StockWithWatchlistStatus[]})
     return (
         <DonatePopupContext.Provider value={{ openDonatePopup }}>
             <ul className="flex flex-col sm:flex-row p-2 gap-3 sm:gap-10 font-medium">
-            {NAV_ITEMS.map(({href, label}) => {
+            {NAV_ITEMS.map(({href, labelKey}) => {
                 if (href === '/search') return (
                     <li key="search-trigger">
                         <SearchCommand
                             renderAs="text"
-                            label="Search"
+                            label={t('nav.search')}
                             initialStocks={initialStocks}
                         />
                     </li>
                 )
                 return <li key={href}>
                     <Link href={href} className={`hover:text-teal-500 transition-colors ${isActive(href) ? 'text-gray-100' : ''}`}>
-                        {label}
+                        {t(labelKey)}
                     </Link>
                 </li>
             })}
@@ -58,7 +60,7 @@ const NavItems = ({initialStocks}: { initialStocks: StockWithWatchlistStatus[]})
                     size="sm"
                 >
                     <Heart className="h-4 w-4 fill-current" />
-                    Donate
+                    {t('nav.donate')}
                 </Button>
             </li>
         </ul>

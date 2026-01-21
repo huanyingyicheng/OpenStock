@@ -12,6 +12,14 @@ export const getAuth = async () => {
         return authInstance;
     }
 
+    if (!process.env.BETTER_AUTH_SECRET) {
+        throw new Error("BETTER_AUTH_SECRET is missing (set it in .env)");
+    }
+
+    if (!process.env.BETTER_AUTH_URL) {
+        throw new Error("BETTER_AUTH_URL is missing (set it in .env, e.g. http://localhost:3000)");
+    }
+
     const mongoose = await connectToDatabase();
     const db = mongoose.connection;
 
@@ -37,5 +45,3 @@ export const getAuth = async () => {
 
     return authInstance;
 }
-
-export const auth = await getAuth();

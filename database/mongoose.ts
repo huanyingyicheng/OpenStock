@@ -17,13 +17,18 @@ if (!cached){
 
 export const connectToDatabase = async () => {
     if(!MONGODB_URI){
-        throw new Error("MongoDB URI is missing");
+        throw new Error("MongoDB URI is missing (set MONGODB_URI in .env)");
     }
 
     if(cached.conn) return cached.conn;
 
     if(!cached.promise) {
-        cached.promise = mongoose.connect(MONGODB_URI, {bufferCommands: false});
+        cached.promise = mongoose.connect(MONGODB_URI, {
+            bufferCommands: false,
+            // Fail fast when MongoDB is down/misconfigured so UI doesn't "hang"
+            serverSelectionTimeoutMS: 5_000,
+            connectTimeoutMS: 5_000,
+        });
     }
 
     try{
@@ -34,6 +39,6 @@ export const connectToDatabase = async () => {
         throw err;
     }
 
-    console.log(`MongoDB Connected ${MONGODB_URI} in ${process.env.NODE_ENV}`);
+    console.log(`MongoDB Connected in ${process.env.NODE_ENV}`);
     return cached.conn;
 }

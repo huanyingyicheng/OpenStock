@@ -1,29 +1,30 @@
 export const NAV_ITEMS = [
-    { href: '/', label: 'Dashboard' },
-    { href: '/search', label: 'Search' },
+    { href: '/', labelKey: 'nav.dashboard' },
+    { href: '/search', labelKey: 'nav.search' },
+    { href: '/flows', labelKey: 'nav.flows' },
     // { href: '/watchlist', label: 'Watchlist' },
 ];
 
 // Sign-up form select options
 export const INVESTMENT_GOALS = [
-    { value: 'Growth', label: 'Growth' },
-    { value: 'Income', label: 'Income' },
-    { value: 'Balanced', label: 'Balanced' },
-    { value: 'Conservative', label: 'Conservative' },
+    { value: 'Growth', labelKey: 'signup.goals.growth' },
+    { value: 'Income', labelKey: 'signup.goals.income' },
+    { value: 'Balanced', labelKey: 'signup.goals.balanced' },
+    { value: 'Conservative', labelKey: 'signup.goals.conservative' },
 ];
 
 export const RISK_TOLERANCE_OPTIONS = [
-    { value: 'Low', label: 'Low' },
-    { value: 'Medium', label: 'Medium' },
-    { value: 'High', label: 'High' },
+    { value: 'Low', labelKey: 'signup.risk.low' },
+    { value: 'Medium', labelKey: 'signup.risk.medium' },
+    { value: 'High', labelKey: 'signup.risk.high' },
 ];
 
 export const PREFERRED_INDUSTRIES = [
-    { value: 'Technology', label: 'Technology' },
-    { value: 'Healthcare', label: 'Healthcare' },
-    { value: 'Finance', label: 'Finance' },
-    { value: 'Energy', label: 'Energy' },
-    { value: 'Consumer Goods', label: 'Consumer Goods' },
+    { value: 'Technology', labelKey: 'signup.industry.technology' },
+    { value: 'Healthcare', labelKey: 'signup.industry.healthcare' },
+    { value: 'Finance', labelKey: 'signup.industry.finance' },
+    { value: 'Energy', labelKey: 'signup.industry.energy' },
+    { value: 'Consumer Goods', labelKey: 'signup.industry.consumerGoods' },
 ];
 
 export const ALERT_TYPE_OPTIONS = [

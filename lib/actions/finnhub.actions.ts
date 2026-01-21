@@ -6,6 +6,23 @@ import { cache } from 'react';
 
 const FINNHUB_BASE_URL = 'https://finnhub.io/api/v1';
 const NEXT_PUBLIC_FINNHUB_API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY ?? '';
+const EASTMONEY_SUGGEST_URL = 'https://searchapi.eastmoney.com/api/suggest/get';
+
+type EastmoneySuggestItem = {
+    Code?: string;
+    Name?: string;
+    Classify?: string;
+    MarketType?: string;
+    SecurityTypeName?: string;
+};
+
+type EastmoneySuggestResponse = {
+    QuotationCodeTable?: {
+        Data?: EastmoneySuggestItem[];
+        Status?: number;
+        Message?: string;
+    };
+};
 
 async function fetchJSON<T>(url: string, revalidateSeconds?: number): Promise<T> {
     const options: RequestInit & { next?: { revalidate?: number } } = revalidateSeconds
@@ -21,6 +38,104 @@ async function fetchJSON<T>(url: string, revalidateSeconds?: number): Promise<T>
 }
 
 export { fetchJSON };
+
+function isChinaQuery(query: string): boolean {
+    if (!query) return false;
+    if (/[\u4e00-\u9fff]/.test(query)) return true; // CJK chars
+    const q = query.trim().toUpperCase();
+    if (/^(SSE|SZSE):\d{6}$/.test(q)) return true;
+    if (/^\d{6}$/.test(q)) return true;
+    if (/^\d{6}\.(SH|SS|SZ)$/.test(q)) return true;
+    return false;
+}
+
+function normalizeToTradingViewSymbol(marketType: string | undefined, code: string): string | null {
+    // Eastmoney: MarketType "1" = Shanghai, "2" = Shenzhen
+    if (marketType === '1') return `SSE:${code}`;
+    if (marketType === '2') return `SZSE:${code}`;
+    return null;
+}
+
+function normalizeChinaInputSymbol(query: string): string | null {
+    const q = query.trim().toUpperCase();
+    const direct = /^(SSE|SZSE):(\d{6})$/.exec(q);
+    if (direct) return `${direct[1]}:${direct[2]}`;
+
+    const suffix = /^(\d{6})\.(SH|SS|SZ)$/.exec(q);
+    if (suffix) {
+        const code = suffix[1];
+        const s = suffix[2];
+        if (s === 'SZ') return `SZSE:${code}`;
+        return `SSE:${code}`;
+    }
+
+    const digits = /^(\d{6})$/.exec(q);
+    if (digits) {
+        const code = digits[1];
+        // Heuristic: 6xxxx/9xxxx => Shanghai, 0xxxx/3xxxx => Shenzhen
+        if (/^[69]/.test(code)) return `SSE:${code}`;
+        if (/^[03]/.test(code)) return `SZSE:${code}`;
+    }
+
+    return null;
+}
+
+async function searchChinaStocks(query: string): Promise<StockWithWatchlistStatus[]> {
+    const normalizedDirect = normalizeChinaInputSymbol(query);
+    if (normalizedDirect) {
+        return [
+            {
+                symbol: normalizedDirect,
+                name: normalizedDirect,
+                exchange: normalizedDirect.split(':')[0],
+                type: 'CN',
+                isInWatchlist: false,
+            },
+        ];
+    }
+
+    try {
+        const url = `${EASTMONEY_SUGGEST_URL}?input=${encodeURIComponent(query)}&type=14&count=10`;
+        const data = await fetchJSON<EastmoneySuggestResponse>(url, 3600);
+
+        const items = data?.QuotationCodeTable?.Data ?? [];
+        const mapped: StockWithWatchlistStatus[] = [];
+        const seen = new Set<string>();
+
+        for (const item of items) {
+            const code = (item?.Code ?? '').trim();
+            if (!/^\d{6}$/.test(code)) continue;
+
+            const classify = item?.Classify ?? '';
+            // Focus on A-share stocks and indices; skip funds, HK/US/LSE, etc.
+            if (classify !== 'AStock' && classify !== 'Index') continue;
+
+            const marketType = item?.MarketType ?? '';
+            const tvSymbol = normalizeToTradingViewSymbol(marketType, code);
+            if (!tvSymbol) continue;
+
+            if (seen.has(tvSymbol)) continue;
+            seen.add(tvSymbol);
+
+            const name = (item?.Name ?? tvSymbol).trim() || tvSymbol;
+            const exchange = (item?.SecurityTypeName ?? tvSymbol.split(':')[0]).trim() || tvSymbol.split(':')[0];
+            const type = classify === 'Index' ? 'Index' : 'A-Share';
+
+            mapped.push({
+                symbol: tvSymbol,
+                name,
+                exchange,
+                type,
+                isInWatchlist: false,
+            });
+        }
+
+        return mapped;
+    } catch (err) {
+        console.error('China stock search error:', err);
+        return [];
+    }
+}
 
 export async function getNews(symbols?: string[]): Promise<MarketNewsArticle[]> {
     try {
@@ -101,13 +216,29 @@ export async function getNews(symbols?: string[]): Promise<MarketNewsArticle[]> 
 export const searchStocks = cache(async (query?: string): Promise<StockWithWatchlistStatus[]> => {
     try {
         const token = NEXT_PUBLIC_FINNHUB_API_KEY;
+        const trimmed = typeof query === 'string' ? query.trim() : '';
+
+        // Support CN A-shares/indices via Eastmoney (no API key), since Finnhub doesn't cover them well.
+        if (trimmed && isChinaQuery(trimmed)) {
+            const cn = await searchChinaStocks(trimmed);
+            if (cn.length > 0) return cn;
+        }
+
         if (!token) {
-            // If no token, log and return empty to avoid throwing per requirements
+            // If no token, provide a small set of defaults so search UI isn't empty.
+            if (!trimmed) {
+                return [
+                    { symbol: 'SSE:000001', name: '上证指数', exchange: 'SSE', type: 'Index', isInWatchlist: false },
+                    { symbol: 'SZSE:399001', name: '深证成指', exchange: 'SZSE', type: 'Index', isInWatchlist: false },
+                    { symbol: 'SSE:600519', name: '贵州茅台', exchange: 'SSE', type: 'A-Share', isInWatchlist: false },
+                    { symbol: 'SZSE:000001', name: '平安银行', exchange: 'SZSE', type: 'A-Share', isInWatchlist: false },
+                ];
+            }
+
+            // If query isn't CN-like and no Finnhub token, return empty.
             console.error('Error in stock search:', new Error('FINNHUB API key is not configured'));
             return [];
         }
-
-        const trimmed = typeof query === 'string' ? query.trim() : '';
 
         let results: FinnhubSearchResult[] = [];
 

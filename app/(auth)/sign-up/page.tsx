@@ -12,9 +12,12 @@ import {useRouter} from "next/navigation";
 import {toast} from "sonner";
 import OpenDevSocietyBranding from "@/components/OpenDevSocietyBranding";
 import React from "react";
+import {useI18n} from "@/components/I18nProvider";
+import AuthConfigNotice from "@/components/AuthConfigNotice";
 
 const SignUp = () => {
     const router = useRouter()
+    const { t } = useI18n();
     const {
         register,
         handleSubmit,
@@ -40,26 +43,31 @@ const SignUp = () => {
                 router.push('/');
                 return;
             }
-            toast.error('Sign up failed', {
-                description: result.error ?? 'We could not create your account.',
+            toast.error(t('auth.signUp.failedTitle'), {
+                description: result.error ?? t('auth.signUp.failedDefault'),
             });
         } catch (e) {
             console.error(e);
-            toast.error('Sign up failed', {
-                description: e instanceof Error ? e.message : 'Failed to create an account.'
+            toast.error(t('auth.signUp.failedTitle'), {
+                description: e instanceof Error ? e.message : t('auth.signUp.failedDefault')
             })
         }
     }
 
+    const investmentGoalsOptions = INVESTMENT_GOALS.map(({ value, labelKey }) => ({ value, label: t(labelKey) }));
+    const riskToleranceOptions = RISK_TOLERANCE_OPTIONS.map(({ value, labelKey }) => ({ value, label: t(labelKey) }));
+    const preferredIndustriesOptions = PREFERRED_INDUSTRIES.map(({ value, labelKey }) => ({ value, label: t(labelKey) }));
+
     return (
         <>
-            <h1 className="form-title">Sign Up & Personalize</h1>
+            <AuthConfigNotice />
+            <h1 className="form-title">{t('auth.signUp.title')}</h1>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
                 <InputField
                     name="fullName"
-                    label="Full Name"
-                    placeholder="Enter full name"
+                    label={t('auth.signUp.fullName')}
+                    placeholder={t('auth.signUp.fullNamePlaceholder')}
                     register={register}
                     error={errors.fullName}
                     validation={{ required: 'Full name is required', minLength: 2 }}
@@ -67,8 +75,8 @@ const SignUp = () => {
 
                 <InputField
                     name="email"
-                    label="Email"
-                    placeholder="opendevsociety@cc.cc"
+                    label={t('auth.signUp.email')}
+                    placeholder={t('auth.signIn.emailPlaceholder')}
                     register={register}
                     error={errors.email}
                     validation={{
@@ -82,8 +90,8 @@ const SignUp = () => {
 
                 <InputField
                     name="password"
-                    label="Password"
-                    placeholder="Enter a strong password"
+                    label={t('auth.signUp.password')}
+                    placeholder={t('auth.signUp.passwordPlaceholder')}
                     type="password"
                     register={register}
                     error={errors.password}
@@ -92,7 +100,7 @@ const SignUp = () => {
 
                 <CountrySelectField
                     name="country"
-                    label="Country"
+                    label={t('auth.signUp.country')}
                     control={control}
                     error={errors.country}
                     required
@@ -100,9 +108,9 @@ const SignUp = () => {
 
                 <SelectField
                     name="investmentGoals"
-                    label="Investment Goals"
-                    placeholder="Select your investment goal"
-                    options={INVESTMENT_GOALS}
+                    label={t('auth.signUp.investmentGoals')}
+                    placeholder={t('auth.signUp.investmentGoals')}
+                    options={investmentGoalsOptions}
                     control={control}
                     error={errors.investmentGoals}
                     required
@@ -110,9 +118,9 @@ const SignUp = () => {
 
                 <SelectField
                     name="riskTolerance"
-                    label="Risk Tolerance"
-                    placeholder="Select your risk level"
-                    options={RISK_TOLERANCE_OPTIONS}
+                    label={t('auth.signUp.riskTolerance')}
+                    placeholder={t('auth.signUp.riskTolerance')}
+                    options={riskToleranceOptions}
                     control={control}
                     error={errors.riskTolerance}
                     required
@@ -120,19 +128,19 @@ const SignUp = () => {
 
                 <SelectField
                     name="preferredIndustry"
-                    label="Preferred Industry"
-                    placeholder="Select your preferred industry"
-                    options={PREFERRED_INDUSTRIES}
+                    label={t('auth.signUp.preferredIndustry')}
+                    placeholder={t('auth.signUp.preferredIndustry')}
+                    options={preferredIndustriesOptions}
                     control={control}
                     error={errors.preferredIndustry}
                     required
                 />
 
                 <Button type="submit" disabled={isSubmitting} className="yellow-btn w-full mt-5">
-                    {isSubmitting ? 'Creating Account' : 'Start Your Investing Journey'}
+                    {isSubmitting ? t('auth.signUp.submitting') : t('auth.signUp.submit')}
                 </Button>
 
-                <FooterLink text="Already have an account?" linkText="Sign in" href="/sign-in" />
+                <FooterLink text={t('auth.signUp.alreadyHave')} linkText={t('auth.signUp.signIn')} href="/sign-in" />
 
                 <OpenDevSocietyBranding outerClassName="mt-10 flex justify-center"/>
             </form>

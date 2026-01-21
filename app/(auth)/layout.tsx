@@ -3,19 +3,35 @@ import React from "react";
 import Image from "next/image";
 import {headers} from "next/headers";
 import {redirect} from "next/navigation";
-import {auth} from "@/lib/better-auth/auth";
+import {getAuth} from "@/lib/better-auth/auth";
+import LanguageToggle from "@/components/LanguageToggle";
+
+export const dynamic = 'force-dynamic';
 
 const Layout = async ({ children }: { children : React.ReactNode }) => {
 
-    const session = await auth.api.getSession({headers: await headers()});
+    const reqHeaders = await headers();
+    const cookieHeader = reqHeaders.get('cookie') ?? '';
+    const hasAuthCookie = cookieHeader.includes('better-auth.session_token=');
 
-    if (session?.user) redirect('/')
+    if (hasAuthCookie) {
+        try {
+            const auth = await getAuth();
+            const session = await auth.api.getSession({headers: reqHeaders});
+            if (session?.user) redirect('/')
+        } catch (e) {
+            console.warn('Auth session check failed; rendering sign-in anyway.', e);
+        }
+    }
     return (
         <main className="auth-layout">
             <section className="auth-left-section scrollbar-hide-default">
-                <Link href="/" className="auth-logo flex items-center gap-2">
+                <div className="flex items-center justify-between gap-3">
+                    <Link href="/" className="auth-logo flex items-center gap-2">
                     <Image src="/assets/images/logo.png" alt="Openstock" width={200} height={50}/>
-                </Link>
+                    </Link>
+                    <LanguageToggle variant="outline" />
+                </div>
 
                 <div className="pb-6 lg:pb-8 flex-1">
                     {children}

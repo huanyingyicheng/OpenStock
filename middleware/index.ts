@@ -2,6 +2,17 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSessionCookie } from "better-auth/cookies";
 
 export async function middleware(request: NextRequest) {
+    // Only enforce redirects for normal page navigations.
+    // Server Actions / RSC requests are often POST or have non-HTML Accept headers.
+    if (request.method !== 'GET') {
+        return NextResponse.next();
+    }
+
+    const accept = request.headers.get('accept') ?? '';
+    if (!accept.includes('text/html')) {
+        return NextResponse.next();
+    }
+
     const sessionCookie = getSessionCookie(request);
 
     // Check cookie presence - prevents obviously unauthorized users

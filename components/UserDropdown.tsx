@@ -14,9 +14,12 @@ import {Button} from "@/components/ui/button";
 import {LogOut} from "lucide-react";
 import NavItems from "@/components/NavItems";
 import {signOut} from "@/lib/actions/auth.actions";
+import LanguageToggle from "@/components/LanguageToggle";
+import {useI18n} from "@/components/I18nProvider";
 
 const UserDropdown = ({ user, initialStocks }: {user: User, initialStocks: StockWithWatchlistStatus[]}) => {
     const router = useRouter();
+    const { t } = useI18n();
 
     const handleSignOut = async () => {
         await signOut();
@@ -58,9 +61,12 @@ const UserDropdown = ({ user, initialStocks }: {user: User, initialStocks: Stock
                     </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator className="bg-gray-600"/>
+                <DropdownMenuItem className="focus:bg-transparent focus:text-teal-500 transition-colors cursor-pointer">
+                    <LanguageToggle variant="ghost" />
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleSignOut} className="text-gray-100 text-md font-medium focus:bg-transparent focus:text-teal-500 transition-colors cursor-pointer">
                     <LogOut className="h-4 w-4 mr-2 hidden sm:block" />
-                    Logout
+                    {t('nav.logout')}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator className="block sm:hidden bg-gray-600"/>
                 <nav className="sm:hidden">

@@ -9,6 +9,7 @@ export const enMessages = {
     dashboard: 'Dashboard',
     search: 'Search',
     flows: 'Money Flow Rankings',
+    downloads: 'Downloads',
     donate: 'Donate',
     signIn: 'Sign In',
     signUp: 'Sign Up',

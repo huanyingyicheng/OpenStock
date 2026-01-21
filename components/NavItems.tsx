@@ -2,7 +2,7 @@
 
 
 import React, { createContext, useContext } from 'react'
-import {NAV_ITEMS} from "@/lib/constants";
+import {NAV_ITEMS, type NavItem} from "@/lib/constants";
 import Link from "next/link";
 import {usePathname} from "next/navigation";
 import SearchCommand from "@/components/SearchCommand";
@@ -37,7 +37,7 @@ const NavItems = ({initialStocks}: { initialStocks: StockWithWatchlistStatus[]})
     return (
         <DonatePopupContext.Provider value={{ openDonatePopup }}>
             <ul className="flex flex-col sm:flex-row p-2 gap-3 sm:gap-10 font-medium">
-            {NAV_ITEMS.map(({href, labelKey}) => {
+            {NAV_ITEMS.map(({href, labelKey, external}: NavItem) => {
                 if (href === '/search') return (
                     <li key="search-trigger">
                         <SearchCommand
@@ -47,11 +47,29 @@ const NavItems = ({initialStocks}: { initialStocks: StockWithWatchlistStatus[]})
                         />
                     </li>
                 )
-                return <li key={href}>
-                    <Link href={href} className={`hover:text-teal-500 transition-colors ${isActive(href) ? 'text-gray-100' : ''}`}>
-                        {t(labelKey)}
-                    </Link>
-                </li>
+
+                if (external || (typeof href === 'string' && href.startsWith('http'))) {
+                    return (
+                      <li key={href}>
+                          <a
+                            href={href}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="hover:text-teal-500 transition-colors"
+                          >
+                              {t(labelKey)}
+                          </a>
+                      </li>
+                    );
+                }
+
+                return (
+                  <li key={href}>
+                      <Link href={href} className={`hover:text-teal-500 transition-colors ${isActive(href) ? 'text-gray-100' : ''}`}>
+                          {t(labelKey)}
+                      </Link>
+                  </li>
+                );
             })}
             <li key="donate">
                 <Button

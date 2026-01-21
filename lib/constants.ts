@@ -1,7 +1,10 @@
-export const NAV_ITEMS = [
+export type NavItem = { href: string; labelKey: string; external?: boolean };
+
+export const NAV_ITEMS: NavItem[] = [
     { href: '/', labelKey: 'nav.dashboard' },
     { href: '/search', labelKey: 'nav.search' },
     { href: '/flows', labelKey: 'nav.flows' },
+    { href: 'https://github.com/huanyingyicheng/OpenStock/releases', labelKey: 'nav.downloads', external: true },
     // { href: '/watchlist', label: 'Watchlist' },
 ];
 

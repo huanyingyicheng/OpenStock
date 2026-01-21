@@ -9,6 +9,7 @@ export const zhMessages = {
     dashboard: '首页',
     search: '搜索',
     flows: '资金流排行',
+    downloads: '下载',
     donate: '赞助',
     signIn: '登录',
     signUp: '注册',

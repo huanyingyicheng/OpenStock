@@ -7,10 +7,12 @@ import LanguageToggle from "@/components/LanguageToggle";
 import { Button } from "@/components/ui/button";
 import { getLocale } from "@/lib/i18n/server";
 import { createTranslator } from "@/lib/i18n";
+import { isAuthEnabled } from "@/lib/auth/isAuthEnabled";
 
 const Header = async ({ user }: { user?: User }) => {
     const initialStocks = await searchStocks();
     const t = createTranslator(await getLocale());
+    const authEnabled = isAuthEnabled();
 
     return (
         <header className="sticky top-0 header">
@@ -31,7 +33,7 @@ const Header = async ({ user }: { user?: User }) => {
                     <LanguageToggle />
                     {user ? (
                         <UserDropdown user={user} initialStocks={initialStocks} />
-                    ) : (
+                    ) : authEnabled ? (
                         <div className="flex items-center gap-2">
                             <Button asChild variant="outline" size="sm">
                                 <Link href="/sign-in">{t('nav.signIn')}</Link>
@@ -40,6 +42,8 @@ const Header = async ({ user }: { user?: User }) => {
                                 <Link href="/sign-up">{t('nav.signUp')}</Link>
                             </Button>
                         </div>
+                    ) : (
+                        <div className="hidden sm:block text-sm text-gray-500">{t('auth.anonymousMode')}</div>
                     )}
                 </div>
             </div>

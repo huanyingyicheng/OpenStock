@@ -70,6 +70,10 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command ^
 
 echo Starting OpenStock...
 call "%TARGET%\run.cmd"
+echo.
+echo OpenStock has stopped.
+echo To start again: open "%TARGET%\run.cmd"
+pause
 "@ | Set-Content -Encoding Ascii (Join-Path $tempDir 'OpenStock-Launcher.cmd')
 
     $payload7z = Join-Path $tempDir 'payload.7z'
@@ -80,7 +84,7 @@ call "%TARGET%\run.cmd"
     @"
 ;!@Install@!UTF-8!
 Title="OpenStock Portable"
-BeginPrompt="This will extract OpenStock Portable next to this EXE."
+BeginPrompt="This will extract OpenStock Portable to a folder named OpenStock-portable next to this EXE."
 ExtractTitle="Extracting OpenStock Portable..."
 RunProgram="OpenStock-Launcher.cmd"
 ;!@InstallEnd@!

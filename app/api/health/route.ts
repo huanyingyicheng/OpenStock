@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { connectToDatabase } from '@/database/mongoose';
+import { isAuthEnabled } from '@/lib/auth/isAuthEnabled';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -9,6 +10,8 @@ export async function GET() {
   if (!process.env.MONGODB_URI) missingEnv.push('MONGODB_URI');
   if (!process.env.BETTER_AUTH_SECRET) missingEnv.push('BETTER_AUTH_SECRET');
   if (!process.env.BETTER_AUTH_URL) missingEnv.push('BETTER_AUTH_URL');
+
+  const authEnabled = isAuthEnabled();
 
   const cwd = process.cwd();
   const envFilePath = path.join(cwd, '.env');
@@ -31,15 +34,14 @@ export async function GET() {
     }
   }
 
-  const ok = missingEnv.length === 0 && dbOk;
+  // If auth isn't configured, health is still OK (portable/offline mode).
+  const ok = authEnabled ? (missingEnv.length === 0 && dbOk) : true;
 
-  return NextResponse.json(
-    {
-      ok,
-      missingEnv,
-      envFiles,
-      db: { ok: dbOk, error: dbError },
-    },
-    { status: ok ? 200 : 500 },
-  );
+  return NextResponse.json({
+    ok,
+    auth: { enabled: authEnabled },
+    missingEnv,
+    envFiles,
+    db: { ok: dbOk, error: dbError },
+  });
 }

@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSessionCookie } from "better-auth/cookies";
+import { isAuthEnabled } from "@/lib/auth/isAuthEnabled";
 
 export async function middleware(request: NextRequest) {
+    // Portable/offline default: allow anonymous usage when auth isn't configured.
+    if (!isAuthEnabled()) {
+        return NextResponse.next();
+    }
+
     // Only enforce redirects for normal page navigations.
     // Server Actions / RSC requests are often POST or have non-HTML Accept headers.
     if (request.method !== 'GET') {

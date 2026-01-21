@@ -130,6 +130,7 @@ export const zhMessages = {
     },
   },
   auth: {
+    anonymousMode: '匿名模式',
     configNotice: {
       title: '账号功能未配置',
       body: '登录/注册需要本地 MongoDB 数据库与 Better Auth 配置。不登录也可以正常使用搜索与资金流排行。',

@@ -60,12 +60,15 @@ if not defined NODE_EXE if exist "%~dp0node\node.exe" set "NODE_EXE=%~dp0node\no
 if not defined NODE_EXE goto :no_node
 
 if "%PORT%"=="" set "PORT=3000"
-echo Open: http://localhost:%PORT%  (NOT https)
+if "%HOSTNAME%"=="" set "HOSTNAME=127.0.0.1"
+echo Open: http://%HOSTNAME%:%PORT%  (NOT https)
 echo Using Node: %NODE_EXE%
 
 set "NODE_ENV=production"
+set "NEXT_TELEMETRY_DISABLED=1"
 set "DOTENV_CONFIG_PATH=%~dp0.env"
-"%NODE_EXE%" -r dotenv/config node_modules/next/dist/bin/next start
+start "" /b cmd /c "timeout /t 2 >nul & start \"\" \"http://%HOSTNAME%:%PORT%/flows\""
+"%NODE_EXE%" -r dotenv/config node_modules/next/dist/bin/next start -H "%HOSTNAME%" -p "%PORT%"
 set "EXITCODE=%ERRORLEVEL%"
 echo.
 echo Server exited (code %EXITCODE%).
@@ -80,15 +83,17 @@ pause
 exit /b 1
 "@ | Set-Content -Encoding Ascii (Join-Path $stageDir 'run.cmd')
 
-@"
+@'
 Set-Location $PSScriptRoot
 if (-not (Test-Path .env)) {
   Write-Host '.env not found (optional).'
   Write-Host 'To enable accounts: copy .env.example to .env, set MONGODB_URI, BETTER_AUTH_SECRET, BETTER_AUTH_URL.'
 }
 if (-not $env:PORT) { $env:PORT = '3000' }
-Write-Host \"Open: http://localhost:$env:PORT  (NOT https)\"
+if (-not $env:HOSTNAME) { $env:HOSTNAME = '127.0.0.1' }
+Write-Host "Open: http://${env:HOSTNAME}:${env:PORT}  (NOT https)"
 $env:NODE_ENV = 'production'
+$env:NEXT_TELEMETRY_DISABLED = '1'
 $nodeCmd = Get-Command node -ErrorAction SilentlyContinue
 $node = $null
 if ($nodeCmd) { $node = $nodeCmd.Source }
@@ -103,8 +108,9 @@ if (-not $node) {
   exit 1
 }
 $env:DOTENV_CONFIG_PATH = (Join-Path $PSScriptRoot '.env')
-& $node -r dotenv/config node_modules/next/dist/bin/next start
-"@ | Set-Content -Encoding UTF8 (Join-Path $stageDir 'run.ps1')
+Start-Process "http://${env:HOSTNAME}:${env:PORT}/flows" | Out-Null
+& $node -r dotenv/config node_modules/next/dist/bin/next start -H $env:HOSTNAME -p $env:PORT
+'@ | Set-Content -Encoding UTF8 (Join-Path $stageDir 'run.ps1')
 
 New-Item -ItemType Directory -Force -Path (Split-Path $ZipPath) | Out-Null
 Remove-Item -Force $ZipPath -ErrorAction SilentlyContinue

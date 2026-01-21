@@ -130,6 +130,7 @@ export const enMessages = {
     },
   },
   auth: {
+    anonymousMode: 'Anonymous mode',
     configNotice: {
       title: 'Account features are not configured',
       body: 'Sign in / sign up needs a local MongoDB database and Better Auth settings. You can still use search and money flow rankings without an account.',

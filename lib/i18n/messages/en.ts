@@ -72,6 +72,26 @@ export const enMessages = {
       changePct: 'Change',
     },
   },
+  stock: {
+    cn: {
+      title: 'A-share Snapshot',
+      dataSource: 'Eastmoney',
+      name: 'Name',
+      price: 'Last',
+      changePct: 'Change',
+      turnover: 'Turnover',
+      quoteUnavailable: 'Failed to load A-share quote data.',
+      widgetsTip:
+        'If charts/widgets below are blank, TradingView resources may be blocked by your network. The snapshot above is fetched from Eastmoney.',
+      kline: {
+        date: 'Date',
+        open: 'Open',
+        close: 'Close',
+        high: 'High',
+        low: 'Low',
+      },
+    },
+  },
   auth: {
     configNotice: {
       title: 'Account features are not configured',

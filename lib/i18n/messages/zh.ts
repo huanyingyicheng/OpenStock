@@ -72,6 +72,26 @@ export const zhMessages = {
       changePct: '涨跌幅',
     },
   },
+  stock: {
+    cn: {
+      title: 'A 股概览',
+      dataSource: '东方财富',
+      name: '名称',
+      price: '最新价',
+      changePct: '涨跌幅',
+      turnover: '成交额',
+      quoteUnavailable: 'A 股行情数据加载失败。',
+      widgetsTip:
+        '如果下方图表/小组件空白，通常是 TradingView 资源被网络拦截。上方概览数据来自东方财富接口。',
+      kline: {
+        date: '日期',
+        open: '开盘',
+        close: '收盘',
+        high: '最高',
+        low: '最低',
+      },
+    },
+  },
   auth: {
     configNotice: {
       title: '账号功能未配置',

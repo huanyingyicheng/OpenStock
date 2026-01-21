@@ -89,6 +89,15 @@ export const enMessages = {
       fundsTip: 'Tip: This list is matched by keyword; click to open the fund as a tradable symbol page.',
       constituents: 'Constituent stocks rankings',
     },
+    trend: {
+      title: 'Recent Money Flow Trend',
+      period: { day: 'Day', week: 'Week', month: 'Month' },
+      dayWindow: 'Day (rolling)',
+      latestNet: 'Latest net',
+      sumIn: 'Inflow sum',
+      sumOut: 'Outflow sum',
+      tip: 'Note: Data is based on Eastmoney daily money-flow kline. “Day (rolling)” supports rolling sums of 1/3/5 days.',
+    },
   },
   stock: {
     cn: {

@@ -10,6 +10,7 @@ import {
 } from "@/lib/constants";
 import { getLocale } from "@/lib/i18n/server";
 import { createTranslator } from "@/lib/i18n";
+import FlowTrendChart from "@/components/flows/FlowTrendChart";
 
 type EastmoneyQuoteResponse = {
     data?: {
@@ -182,6 +183,8 @@ export default async function StockDetails({ params }: StockDetailsPageProps) {
                             ) : null}
                         </div>
                     ) : null}
+
+                    {secId ? <FlowTrendChart id={symbol} defaultPeriod="day" defaultDayWindow="1" limit={60} /> : null}
 
                     <TradingViewWidget
                         scriptUrl={`${scriptUrl}symbol-info.js`}

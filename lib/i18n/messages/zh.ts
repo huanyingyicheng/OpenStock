@@ -89,6 +89,15 @@ export const zhMessages = {
       fundsTip: '提示：基金列表为关键词匹配结果，点击可作为可交易代码打开详情页。',
       constituents: '成分股排行',
     },
+    trend: {
+      title: '最近资金出入趋势',
+      period: { day: '日', week: '周', month: '月' },
+      dayWindow: '日(滚动)',
+      latestNet: '最新净流入',
+      sumIn: '区间流入合计',
+      sumOut: '区间流出合计',
+      tip: '说明：数据来自东方财富资金流向日K；“日(滚动)”支持 1/3/5 日滚动合计。',
+    },
   },
   stock: {
     cn: {

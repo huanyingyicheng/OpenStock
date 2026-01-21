@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { createTranslator } from '@/lib/i18n';
 import { getLocale } from '@/lib/i18n/server';
 import SectorConstituentRankings from '@/components/flows/SectorConstituentRankings';
+import FlowTrendChart from '@/components/flows/FlowTrendChart';
 
 export const dynamic = 'force-dynamic';
 
@@ -83,6 +84,8 @@ export default async function SectorDetailPage({ params }: { params: Promise<{ c
         </div>
         <p className="text-sm text-gray-500">{t('flows.sectorDetail.subtitle')}</p>
       </div>
+
+      <FlowTrendChart id={sectorCode} defaultPeriod="day" defaultDayWindow="1" limit={60} />
 
       <div className="rounded-lg border border-gray-800 bg-gray-900/40 p-4">
         <h2 id="funds" className="text-base font-semibold text-gray-100">{t('flows.sectorDetail.relatedFunds')}</h2>

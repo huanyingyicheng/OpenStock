@@ -16,8 +16,8 @@ export const enMessages = {
     logout: 'Logout',
   },
   flows: {
-    title: 'A-share Money Flow Rankings',
-    subtitle: 'Rank sectors and stocks by turnover and net inflow/outflow.',
+    title: 'Money Flow Rankings',
+    subtitle: 'Supports CN A-shares / US / HK: rank sectors and stocks by turnover and net inflow/outflow.',
     tabs: {
       stocks: 'Stocks',
       sectors: 'Sectors',
@@ -38,6 +38,8 @@ export const enMessages = {
       kcb: 'STAR Market',
       cyb: 'ChiNext',
       zxb: 'SME Board',
+      us: 'US',
+      hk: 'HK',
     },
     sector: {
       industry: 'Industry',
@@ -94,7 +96,7 @@ export const enMessages = {
       subtitle: 'Trends for stocks/ETFs/sectors. Aggregation by day/week/month; day supports 1/3/5 rolling sums.',
       open: 'Open trend page',
       inputLabel: 'Symbol / Sector',
-      inputPlaceholder: 'e.g. SSE:600879 / SZSE:000001 / BK1036',
+      inputPlaceholder: 'e.g. SSE:600879 / SZSE:000001 / US:AAPL / HK:00700 / BK1036',
       apply: 'View',
       examples: 'Examples:',
     },
@@ -106,18 +108,18 @@ export const enMessages = {
       sumIn: 'Inflow sum',
       sumOut: 'Outflow sum',
       legend: { net: 'Net', in: 'In', out: 'Out' },
-      tip: 'Note: Data is based on Eastmoney daily money-flow kline. “Day (rolling)” supports rolling sums of 1/3/5 days.',
+      tip: 'Note: Data is based on Eastmoney daily money-flow kline. In/Out are derived from net. “Day (rolling)” supports rolling sums of 1/3/5 days.',
     },
   },
   stock: {
-    cn: {
-      title: 'A-share Snapshot',
+    snapshot: {
+      title: 'Market Snapshot',
       dataSource: 'Eastmoney',
       name: 'Name',
       price: 'Last',
       changePct: 'Change',
       turnover: 'Turnover',
-      quoteUnavailable: 'Failed to load A-share quote data.',
+      quoteUnavailable: 'Failed to load quote data.',
       widgetsTip:
         'If charts/widgets below are blank, TradingView resources may be blocked by your network. The snapshot above is fetched from Eastmoney.',
       kline: {

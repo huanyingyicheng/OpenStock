@@ -21,6 +21,8 @@ export default function FlowTrendExplorer() {
       { id: 'BK1036', label: 'BK1036' },
       { id: 'SSE:512480', label: 'SSE:512480 (ETF)' },
       { id: 'SZSE:159915', label: 'SZSE:159915 (ETF)' },
+      { id: 'US:AAPL', label: 'US:AAPL' },
+      { id: 'HK:00700', label: 'HK:00700' },
     ],
     []
   );
@@ -71,4 +73,3 @@ export default function FlowTrendExplorer() {
     </div>
   );
 }
-

@@ -35,14 +35,58 @@ type EastmoneyKlineResponse = {
 
 type Kline = { date: string; open: number; close: number; high: number; low: number; volume: number };
 
-function toEastmoneySecId(tvSymbol: string): string | null {
-    const m = /^([A-Z]+):(\d{6})$/.exec(tvSymbol.toUpperCase());
+type EastmoneySuggestItem = {
+    Code?: string;
+    Classify?: string;
+    SecurityType?: string;
+    QuoteID?: string;
+};
+
+type EastmoneySuggestResponse = {
+    QuotationCodeTable?: {
+        Data?: EastmoneySuggestItem[];
+        Status?: number;
+        Message?: string;
+    };
+};
+
+function toChinaSecId(tvSymbol: string): string | null {
+    const m = /^(SSE|SZSE):(\d{6})$/.exec(tvSymbol.toUpperCase());
     if (!m) return null;
     const ex = m[1];
     const code = m[2];
     if (ex === 'SSE') return `1.${code}`;
-    if (ex === 'SZSE') return `0.${code}`;
-    return null;
+    return `0.${code}`;
+}
+
+async function resolveSecIdBySuggest(symbol: string): Promise<string | null> {
+    const s = symbol.trim().toUpperCase();
+    const us = /^US:([A-Z0-9.\-]{1,12})$/.exec(s);
+    const hk = /^HK:(\d{4,5})$/.exec(s);
+    if (!us && !hk) return null;
+
+    const input = us ? us[1] : hk![1];
+    const url = new URL('https://searchapi.eastmoney.com/api/suggest/get');
+    url.searchParams.set('input', input);
+    url.searchParams.set('type', '14');
+    url.searchParams.set('count', '10');
+
+    const res = await fetch(url.toString(), { next: { revalidate: 3600 } });
+    if (!res.ok) return null;
+    const json = (await res.json()) as EastmoneySuggestResponse;
+    const items = json?.QuotationCodeTable?.Data ?? [];
+
+    if (us) {
+        const exact = items.find(
+            (x) => x?.Classify === 'UsStock' && (x?.Code ?? '').toUpperCase() === input && x?.SecurityType === '20' && x?.QuoteID
+        );
+        return (exact?.QuoteID ?? null) as string | null;
+    }
+
+    const exact = items.find(
+        (x) => x?.Classify === 'HK' && (x?.Code ?? '') === input && x?.SecurityType === '19' && x?.QuoteID
+    );
+    return (exact?.QuoteID ?? null) as string | null;
 }
 
 async function fetchEastmoneyQuote(secId: string): Promise<EastmoneyQuoteResponse['data'] | null> {
@@ -99,7 +143,8 @@ export default async function StockDetails({ params }: StockDetailsPageProps) {
     const scriptUrl = `https://s3.tradingview.com/external-embedding/embed-widget-`;
     const t = createTranslator(await getLocale());
 
-    const secId = toEastmoneySecId(symbol);
+    const cnSecId = toChinaSecId(symbol);
+    const secId = cnSecId ?? (await resolveSecIdBySuggest(symbol));
     let cnQuote: EastmoneyQuoteResponse['data'] | null = null;
     let cnKlines: Kline[] = [];
 
@@ -122,46 +167,46 @@ export default async function StockDetails({ params }: StockDetailsPageProps) {
                     {secId ? (
                         <div className="rounded-lg border border-gray-800 bg-gray-900/40 p-4">
                             <div className="flex flex-wrap items-center justify-between gap-2">
-                                <h2 className="text-base font-semibold text-gray-100">{t('stock.cn.title')}</h2>
+                                <h2 className="text-base font-semibold text-gray-100">{t('stock.snapshot.title')}</h2>
                                 <a
                                     className="text-xs text-gray-400 hover:text-teal-400 underline underline-offset-4"
                                     href="https://data.eastmoney.com/zjlx/"
                                     target="_blank"
                                     rel="noreferrer"
                                 >
-                                    {t('stock.cn.dataSource')}
+                                    {t('stock.snapshot.dataSource')}
                                 </a>
                             </div>
 
                             {cnQuote ? (
                                 <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
-                                    <div className="text-gray-400">{t('stock.cn.name')}</div>
+                                    <div className="text-gray-400">{t('stock.snapshot.name')}</div>
                                     <div className="text-gray-200">{cnQuote.f58 ?? symbol.toUpperCase()}</div>
-                                    <div className="text-gray-400">{t('stock.cn.price')}</div>
+                                    <div className="text-gray-400">{t('stock.snapshot.price')}</div>
                                     <div className="text-gray-200">{typeof cnQuote.f43 === 'number' ? cnQuote.f43.toFixed(2) : '-'}</div>
-                                    <div className="text-gray-400">{t('stock.cn.changePct')}</div>
+                                    <div className="text-gray-400">{t('stock.snapshot.changePct')}</div>
                                     <div className={typeof cnQuote.f170 === 'number' && cnQuote.f170 < 0 ? 'text-red-400' : 'text-teal-400'}>
                                         {typeof cnQuote.f170 === 'number' ? `${cnQuote.f170.toFixed(2)}%` : '-'}
                                     </div>
-                                    <div className="text-gray-400">{t('stock.cn.turnover')}</div>
+                                    <div className="text-gray-400">{t('stock.snapshot.turnover')}</div>
                                     <div className="text-gray-200">{typeof cnQuote.f48 === 'number' ? cnQuote.f48.toLocaleString() : '-'}</div>
                                 </div>
                             ) : (
-                                <div className="mt-3 text-sm text-amber-200/80">{t('stock.cn.quoteUnavailable')}</div>
+                                <div className="mt-3 text-sm text-amber-200/80">{t('stock.snapshot.quoteUnavailable')}</div>
                             )}
 
-                            <div className="mt-4 text-xs text-gray-500">{t('stock.cn.widgetsTip')}</div>
+                            <div className="mt-4 text-xs text-gray-500">{t('stock.snapshot.widgetsTip')}</div>
 
                             {cnKlines.length > 0 ? (
                                 <div className="mt-4 overflow-x-auto">
                                     <table className="min-w-full text-xs">
                                         <thead className="text-gray-400">
                                             <tr>
-                                                <th className="py-2 text-left font-medium">{t('stock.cn.kline.date')}</th>
-                                                <th className="py-2 text-right font-medium">{t('stock.cn.kline.open')}</th>
-                                                <th className="py-2 text-right font-medium">{t('stock.cn.kline.close')}</th>
-                                                <th className="py-2 text-right font-medium">{t('stock.cn.kline.high')}</th>
-                                                <th className="py-2 text-right font-medium">{t('stock.cn.kline.low')}</th>
+                                                <th className="py-2 text-left font-medium">{t('stock.snapshot.kline.date')}</th>
+                                                <th className="py-2 text-right font-medium">{t('stock.snapshot.kline.open')}</th>
+                                                <th className="py-2 text-right font-medium">{t('stock.snapshot.kline.close')}</th>
+                                                <th className="py-2 text-right font-medium">{t('stock.snapshot.kline.high')}</th>
+                                                <th className="py-2 text-right font-medium">{t('stock.snapshot.kline.low')}</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-gray-800 text-gray-200">
@@ -185,7 +230,7 @@ export default async function StockDetails({ params }: StockDetailsPageProps) {
                         </div>
                     ) : null}
 
-                    {secId ? <FlowTrendChart id={symbol} defaultPeriod="day" defaultDayWindow="1" limit={60} /> : null}
+                    {secId ? <FlowTrendChart id={secId} defaultPeriod="day" defaultDayWindow="1" limit={60} /> : null}
 
                     <TradingViewWidget
                         scriptUrl={`${scriptUrl}symbol-info.js`}

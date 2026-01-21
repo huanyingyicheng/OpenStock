@@ -1,5 +1,5 @@
 export type Scope = 'stock' | 'sector' | 'fund';
-export type Market = 'all' | 'sha' | 'sza' | 'kcb' | 'cyb' | 'zxb';
+export type Market = 'all' | 'sha' | 'sza' | 'kcb' | 'cyb' | 'zxb' | 'us' | 'hk';
 export type SectorType = 'industry' | 'concept' | 'region';
 export type Window = '1' | '3' | '5' | '10';
 export type Metric = 'netInflow' | 'mainInflow' | 'mainOutflow' | 'turnover' | 'superLargeNet' | 'largeNet';
@@ -32,6 +32,10 @@ export const FS_STOCK: Record<Market, string> = {
   kcb: 'm:1+t:23+f:!2',
   cyb: 'm:0+t:80+f:!2',
   zxb: 'm:0+t:13+f:!2',
+  // US: multiple exchanges/boards
+  us: 'm:105,m:106,m:107',
+  // HK: common equities list
+  hk: 'm:116+t:3',
 };
 
 export const FS_SECTOR: Record<SectorType, string> = {
@@ -80,9 +84,19 @@ export function getNumberField(row: Record<string, unknown>, fid: string): numbe
 
 export function tvSymbolFromMarketId(marketId: number | undefined, code: string | undefined): string | null {
   if (!code) return null;
-  if (!/^\d{6}$/.test(code)) return null;
   if (marketId === 1) return `SSE:${code}`;
   if (marketId === 0) return `SZSE:${code}`;
+  if (marketId === 105 || marketId === 106 || marketId === 107) {
+    const ticker = code.trim().toUpperCase();
+    if (!/^[A-Z0-9.\-]{1,12}$/.test(ticker)) return null;
+    return `US:${ticker}`;
+  }
+  if (marketId === 116) {
+    const hk = code.trim();
+    if (!/^\d{4,5}$/.test(hk)) return null;
+    return `HK:${hk}`;
+  }
+  if (!/^\d{6}$/.test(code)) return null;
   return null;
 }
 
@@ -101,4 +115,3 @@ export function resolveSort(metric: Metric, window: Window, order: Order): { fid
   // default: main net inflow (signed) by window
   return { fid: mainNet, po: order === 'desc' ? 1 : 0 };
 }
-

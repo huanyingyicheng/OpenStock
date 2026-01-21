@@ -27,7 +27,7 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
 
   const scope = pick<Scope>(searchParams.get('scope'), ['stock', 'sector', 'fund'], 'stock');
-  const market = pick<Market>(searchParams.get('market'), ['all', 'sha', 'sza', 'kcb', 'cyb', 'zxb'], 'all');
+  const market = pick<Market>(searchParams.get('market'), ['all', 'sha', 'sza', 'kcb', 'cyb', 'zxb', 'us', 'hk'], 'all');
   const sectorType = pick<SectorType>(searchParams.get('sectorType'), ['industry', 'concept', 'region'], 'industry');
   const window = pick<Window>(searchParams.get('window'), ['1', '3', '5', '10'], '1');
   const metric = pick<Metric>(

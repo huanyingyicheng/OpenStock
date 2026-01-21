@@ -6,7 +6,7 @@ import { useI18n } from '@/components/I18nProvider';
 import { Button } from '@/components/ui/button';
 
 type ScopeTab = 'stocks' | 'sectors' | 'funds';
-type Market = 'all' | 'sha' | 'sza' | 'kcb' | 'cyb' | 'zxb';
+type Market = 'all' | 'sha' | 'sza' | 'kcb' | 'cyb' | 'zxb' | 'us' | 'hk';
 type SectorType = 'industry' | 'concept' | 'region';
 type Window = '1' | '3' | '5' | '10';
 type Metric = 'netInflow' | 'mainInflow' | 'mainOutflow' | 'turnover' | 'superLargeNet' | 'largeNet';
@@ -73,6 +73,12 @@ export default function FlowRankings() {
   const [total, setTotal] = useState<number>(0);
   const [updatedAt, setUpdatedAt] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (tab === 'funds' && (market === 'us' || market === 'hk')) {
+      setMarket('all');
+    }
+  }, [tab, market]);
+
   const requestUrl = useMemo(() => {
     const params = new URLSearchParams();
     if (tab === 'sectors') {
@@ -127,6 +133,8 @@ export default function FlowRankings() {
         { value: 'kcb', label: t('flows.market.kcb') },
         { value: 'cyb', label: t('flows.market.cyb') },
         { value: 'zxb', label: t('flows.market.zxb') },
+        { value: 'us', label: t('flows.market.us') },
+        { value: 'hk', label: t('flows.market.hk') },
       ] as const,
     [t]
   );

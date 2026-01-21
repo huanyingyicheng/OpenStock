@@ -10,6 +10,21 @@ type EastmoneyFflowResponse = {
   };
 };
 
+type EastmoneySuggestItem = {
+  Code?: string;
+  Classify?: string;
+  SecurityType?: string;
+  QuoteID?: string;
+};
+
+type EastmoneySuggestResponse = {
+  QuotationCodeTable?: {
+    Data?: EastmoneySuggestItem[];
+    Status?: number;
+    Message?: string;
+  };
+};
+
 type Point = {
   label: string; // date-like label
   net: number;
@@ -20,6 +35,7 @@ type Point = {
 
 const UT = '8dec03ba335b81bf4ebdf7b29ec27d15';
 const DAYKLINE_URL = 'https://push2his.eastmoney.com/api/qt/stock/fflow/daykline/get';
+const SUGGEST_URL = 'https://searchapi.eastmoney.com/api/suggest/get';
 
 function pick<T extends string>(value: string | null, allowed: readonly T[], fallback: T): T {
   if (!value) return fallback;
@@ -32,17 +48,57 @@ function toInt(value: string | null, fallback: number): number {
   return Number.isFinite(n) ? n : fallback;
 }
 
-function toSecId(id: string): string | null {
+async function resolveSecId(id: string): Promise<string | null> {
   const trimmed = id.trim().toUpperCase();
+  if (!trimmed) return null;
+
+  // Allow advanced usage: direct Eastmoney secid (e.g. 105.AAPL / 116.00700 / 1.600519 / 90.BKxxxx)
+  if (/^\d+\.[A-Z0-9.\-]+$/.test(trimmed)) return trimmed;
 
   if (/^BK\d{3,6}$/.test(trimmed)) return `90.${trimmed}`;
 
-  const m = /^([A-Z]+):(\d{6})$/.exec(trimmed);
-  if (!m) return null;
-  const ex = m[1];
-  const code = m[2];
-  if (ex === 'SSE') return `1.${code}`;
-  if (ex === 'SZSE') return `0.${code}`;
+  const cn = /^(SSE|SZSE):(\d{6})$/.exec(trimmed);
+  if (cn) {
+    const ex = cn[1];
+    const code = cn[2];
+    if (ex === 'SSE') return `1.${code}`;
+    if (ex === 'SZSE') return `0.${code}`;
+  }
+
+  const us = /^US:([A-Z0-9.\-]{1,12})$/.exec(trimmed);
+  if (us) {
+    const ticker = us[1];
+    const url = new URL(SUGGEST_URL);
+    url.searchParams.set('input', ticker);
+    url.searchParams.set('type', '14');
+    url.searchParams.set('count', '10');
+    const res = await fetch(url.toString(), { next: { revalidate } });
+    if (!res.ok) return null;
+    const json = (await res.json()) as EastmoneySuggestResponse;
+    const items = json?.QuotationCodeTable?.Data ?? [];
+    const exact = items.find(
+      (x) => x?.Classify === 'UsStock' && (x?.Code ?? '').toUpperCase() === ticker && x?.SecurityType === '20' && x?.QuoteID
+    );
+    return (exact?.QuoteID ?? null) as string | null;
+  }
+
+  const hk = /^HK:(\d{4,5})$/.exec(trimmed);
+  if (hk) {
+    const code = hk[1];
+    const url = new URL(SUGGEST_URL);
+    url.searchParams.set('input', code);
+    url.searchParams.set('type', '14');
+    url.searchParams.set('count', '10');
+    const res = await fetch(url.toString(), { next: { revalidate } });
+    if (!res.ok) return null;
+    const json = (await res.json()) as EastmoneySuggestResponse;
+    const items = json?.QuotationCodeTable?.Data ?? [];
+    const exact = items.find(
+      (x) => x?.Classify === 'HK' && (x?.Code ?? '') === code && x?.SecurityType === '19' && x?.QuoteID
+    );
+    return (exact?.QuoteID ?? null) as string | null;
+  }
+
   return null;
 }
 
@@ -106,9 +162,12 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
 
   const id = (searchParams.get('id') ?? '').trim();
-  const secId = toSecId(id);
+  const secId = await resolveSecId(id);
   if (!secId) {
-    return NextResponse.json({ ok: false, error: 'Invalid id. Use SSE:xxxxxx / SZSE:xxxxxx / BKxxxx.' }, { status: 400 });
+    return NextResponse.json(
+      { ok: false, error: 'Invalid id. Use SSE:xxxxxx / SZSE:xxxxxx / US:TICKER / HK:xxxxx / BKxxxx.' },
+      { status: 400 }
+    );
   }
 
   const period = pick<Period>(searchParams.get('period'), ['day', 'week', 'month'], 'day');
@@ -184,4 +243,3 @@ export async function GET(req: Request) {
     return NextResponse.json({ ok: false, error: e instanceof Error ? e.message : 'Unknown error' }, { status: 500 });
   }
 }
-

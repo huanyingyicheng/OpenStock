@@ -16,8 +16,8 @@ export const zhMessages = {
     logout: '退出登录',
   },
   flows: {
-    title: 'A 股资金流排行',
-    subtitle: '按成交额与净流入/净流出对板块与个股进行排名。',
+    title: '资金流排行',
+    subtitle: '支持 A 股 / 美股 / 港股：按成交额与净流入/净流出对板块与个股进行排名。',
     tabs: {
       stocks: '个股',
       sectors: '板块',
@@ -38,6 +38,8 @@ export const zhMessages = {
       kcb: '科创板',
       cyb: '创业板',
       zxb: '中小板',
+      us: '美股',
+      hk: '港股',
     },
     sector: {
       industry: '行业',
@@ -94,7 +96,7 @@ export const zhMessages = {
       subtitle: '支持个股/ETF/板块的主力净流入趋势（按日/周/月聚合），日支持 1/3/5 滚动。',
       open: '打开趋势页',
       inputLabel: '代码/板块',
-      inputPlaceholder: '例如：SSE:600879 / SZSE:000001 / BK1036',
+      inputPlaceholder: '例如：SSE:600879 / SZSE:000001 / US:AAPL / HK:00700 / BK1036',
       apply: '查看',
       examples: '示例：',
     },
@@ -106,18 +108,18 @@ export const zhMessages = {
       sumIn: '区间流入合计',
       sumOut: '区间流出合计',
       legend: { net: '净流入', in: '流入', out: '流出' },
-      tip: '说明：数据来自东方财富资金流向日K；“日(滚动)”支持 1/3/5 日滚动合计。',
+      tip: '说明：数据来自东方财富资金流向日K；“流入/流出”为净额拆分显示；“日(滚动)”支持 1/3/5 日滚动合计。',
     },
   },
   stock: {
-    cn: {
-      title: 'A 股概览',
+    snapshot: {
+      title: '行情概览',
       dataSource: '东方财富',
       name: '名称',
       price: '最新价',
       changePct: '涨跌幅',
       turnover: '成交额',
-      quoteUnavailable: 'A 股行情数据加载失败。',
+      quoteUnavailable: '行情数据加载失败。',
       widgetsTip:
         '如果下方图表/小组件空白，通常是 TradingView 资源被网络拦截。上方概览数据来自东方财富接口。',
       kline: {

@@ -2,7 +2,15 @@ export type Scope = 'stock' | 'sector' | 'fund';
 export type Market = 'all' | 'sha' | 'sza' | 'kcb' | 'cyb' | 'zxb' | 'us' | 'hk';
 export type SectorType = 'industry' | 'concept' | 'region';
 export type Window = '1' | '3' | '5' | '10';
-export type Metric = 'netInflow' | 'mainInflow' | 'mainOutflow' | 'turnover' | 'superLargeNet' | 'largeNet';
+export type Metric =
+  | 'netInflow'
+  | 'mainInflow'
+  | 'mainOutflow'
+  | 'turnover'
+  | 'superLargeNet'
+  | 'largeNet'
+  | 'price'
+  | 'changePct';
 export type Order = 'desc' | 'asc';
 
 export type EastmoneyClistDiff = Record<string, unknown> & {
@@ -50,6 +58,9 @@ export const FS_FUND: Record<'all' | 'sha' | 'sza', string> = {
   sha: 'm:1+t:9',
   sza: 'm:0+t:10',
 };
+
+// OTC funds (off-exchange, 场外基金). Note: money-flow fields are generally unavailable.
+export const FS_FUND_OTC = 'm:150';
 
 export const FLOW_FIDS_BY_WINDOW: Record<
   Window,
@@ -104,6 +115,8 @@ export function resolveSort(metric: Metric, window: Window, order: Order): { fid
   const { mainNet, superLargeNet, largeNet } = FLOW_FIDS_BY_WINDOW[window];
 
   // `po`: 1 = desc, 0 = asc
+  if (metric === 'price') return { fid: 'f2', po: order === 'desc' ? 1 : 0 };
+  if (metric === 'changePct') return { fid: 'f3', po: order === 'desc' ? 1 : 0 };
   if (metric === 'turnover') return { fid: 'f6', po: order === 'desc' ? 1 : 0 };
   if (metric === 'superLargeNet') return { fid: superLargeNet, po: order === 'desc' ? 1 : 0 };
   if (metric === 'largeNet') return { fid: largeNet, po: order === 'desc' ? 1 : 0 };

@@ -21,15 +21,20 @@ export const zhMessages = {
     tabs: {
       stocks: '个股',
       sectors: '板块',
-      funds: '基金（ETF）',
+      funds: '基金',
     },
     filters: {
       market: '市场',
       sectorType: '板块类型',
+      fundType: '基金类型',
       window: '周期',
       metric: '排序指标',
       order: '排序',
       limit: '显示条数',
+    },
+    fundType: {
+      etf: '场内基金（ETF）',
+      otc: '场外基金',
     },
     market: {
       all: '沪深 A（全市场）',
@@ -80,8 +85,11 @@ export const zhMessages = {
       mainOutflow: '主力流出',
       superLargeNet: '超大单净额',
       largeNet: '大单净额',
+      nav: '单位净值',
       changePct: '涨跌幅',
     },
+    otcNote:
+      '提示：场外基金一般不提供“资金流向/成交额/趋势图”口径，本页仅展示净值与涨跌幅（详情点击名称打开东方财富基金页）。',
     sectorDetail: {
       title: '板块',
       back: '返回资金流排行',

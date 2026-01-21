@@ -21,15 +21,20 @@ export const enMessages = {
     tabs: {
       stocks: 'Stocks',
       sectors: 'Sectors',
-      funds: 'Funds (ETF)',
+      funds: 'Funds',
     },
     filters: {
       market: 'Market',
       sectorType: 'Sector Type',
+      fundType: 'Fund Type',
       window: 'Window',
       metric: 'Metric',
       order: 'Order',
       limit: 'Top',
+    },
+    fundType: {
+      etf: 'Exchange-traded (ETF)',
+      otc: 'Off-exchange (OTC)',
     },
     market: {
       all: 'A-share (All)',
@@ -80,8 +85,11 @@ export const enMessages = {
       mainOutflow: 'Main Outflow',
       superLargeNet: 'Super-large Net',
       largeNet: 'Large Net',
+      nav: 'NAV',
       changePct: 'Change',
     },
+    otcNote:
+      'Note: OTC funds typically do not provide money-flow/turnover/trend data. This view shows NAV and change only (click the name to open Eastmoney fund page).',
     sectorDetail: {
       title: 'Sector',
       back: 'Back to rankings',

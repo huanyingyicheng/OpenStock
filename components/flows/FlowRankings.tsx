@@ -11,6 +11,7 @@ type SectorType = 'industry' | 'concept' | 'region';
 type Window = '1' | '3' | '5' | '10';
 type Metric = 'netInflow' | 'mainInflow' | 'mainOutflow' | 'turnover' | 'superLargeNet' | 'largeNet';
 type Order = 'desc' | 'asc';
+type FundType = 'etf' | 'otc';
 
 type RankItem = {
   rank: number;
@@ -66,6 +67,7 @@ export default function FlowRankings() {
   const [metric, setMetric] = useState<Metric>('netInflow');
   const [order, setOrder] = useState<Order>('desc');
   const [limit, setLimit] = useState<number>(20);
+  const [fundType, setFundType] = useState<FundType>('etf');
 
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -86,18 +88,21 @@ export default function FlowRankings() {
       params.set('sectorType', sectorType);
     } else if (tab === 'funds') {
       params.set('scope', 'fund');
+      params.set('fundType', fundType);
       params.set('market', market === 'sha' ? 'sha' : market === 'sza' ? 'sza' : 'all');
     } else {
       params.set('scope', 'stock');
       params.set('market', market);
     }
-    params.set('window', window);
+    if (!(tab === 'funds' && fundType === 'otc')) {
+      params.set('window', window);
+    }
     params.set('metric', metric);
     params.set('order', order);
     params.set('limit', String(limit));
     params.set('page', '1');
     return `/api/flows/rank?${params.toString()}`;
-  }, [tab, sectorType, market, window, metric, order, limit]);
+  }, [tab, sectorType, market, window, metric, order, limit, fundType]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -184,7 +189,21 @@ export default function FlowRankings() {
       </div>
 
       <div className="flex flex-wrap items-end gap-3 rounded-lg border border-gray-800 bg-gray-900/40 p-3">
-        {tab === 'stocks' || tab === 'funds' ? (
+        {tab === 'funds' ? (
+          <label className="flex flex-col gap-1 text-sm">
+            <span className="text-gray-400">{t('flows.filters.fundType')}</span>
+            <select
+              className="h-9 rounded-md border border-gray-800 bg-gray-950 px-3 text-gray-200"
+              value={fundType}
+              onChange={(e) => setFundType(e.target.value as FundType)}
+            >
+              <option value="etf">{t('flows.fundType.etf')}</option>
+              <option value="otc">{t('flows.fundType.otc')}</option>
+            </select>
+          </label>
+        ) : null}
+
+        {tab === 'stocks' || (tab === 'funds' && fundType === 'etf') ? (
           <label className="flex flex-col gap-1 text-sm">
             <span className="text-gray-400">{t('flows.filters.market')}</span>
             <select
@@ -219,35 +238,39 @@ export default function FlowRankings() {
           </label>
         )}
 
-        <label className="flex flex-col gap-1 text-sm">
-          <span className="text-gray-400">{t('flows.filters.window')}</span>
-          <select
-            className="h-9 rounded-md border border-gray-800 bg-gray-950 px-3 text-gray-200"
-            value={window}
-            onChange={(e) => setWindow(e.target.value as Window)}
-          >
-            <option value="1">{t('flows.window.1')}</option>
-            <option value="3">{t('flows.window.3')}</option>
-            <option value="5">{t('flows.window.5')}</option>
-            <option value="10">{t('flows.window.10')}</option>
-          </select>
-        </label>
+        {tab === 'funds' && fundType === 'otc' ? null : (
+          <label className="flex flex-col gap-1 text-sm">
+            <span className="text-gray-400">{t('flows.filters.window')}</span>
+            <select
+              className="h-9 rounded-md border border-gray-800 bg-gray-950 px-3 text-gray-200"
+              value={window}
+              onChange={(e) => setWindow(e.target.value as Window)}
+            >
+              <option value="1">{t('flows.window.1')}</option>
+              <option value="3">{t('flows.window.3')}</option>
+              <option value="5">{t('flows.window.5')}</option>
+              <option value="10">{t('flows.window.10')}</option>
+            </select>
+          </label>
+        )}
 
-        <label className="flex flex-col gap-1 text-sm">
-          <span className="text-gray-400">{t('flows.filters.metric')}</span>
-          <select
-            className="h-9 rounded-md border border-gray-800 bg-gray-950 px-3 text-gray-200"
-            value={metric}
-            onChange={(e) => setMetric(e.target.value as Metric)}
-          >
-            <option value="netInflow">{t('flows.metric.netInflow')}</option>
-            <option value="mainInflow">{t('flows.metric.mainInflow')}</option>
-            <option value="mainOutflow">{t('flows.metric.mainOutflow')}</option>
-            <option value="superLargeNet">{t('flows.metric.superLargeNet')}</option>
-            <option value="largeNet">{t('flows.metric.largeNet')}</option>
-            <option value="turnover">{t('flows.metric.turnover')}</option>
-          </select>
-        </label>
+        {tab === 'funds' && fundType === 'otc' ? null : (
+          <label className="flex flex-col gap-1 text-sm">
+            <span className="text-gray-400">{t('flows.filters.metric')}</span>
+            <select
+              className="h-9 rounded-md border border-gray-800 bg-gray-950 px-3 text-gray-200"
+              value={metric}
+              onChange={(e) => setMetric(e.target.value as Metric)}
+            >
+              <option value="netInflow">{t('flows.metric.netInflow')}</option>
+              <option value="mainInflow">{t('flows.metric.mainInflow')}</option>
+              <option value="mainOutflow">{t('flows.metric.mainOutflow')}</option>
+              <option value="superLargeNet">{t('flows.metric.superLargeNet')}</option>
+              <option value="largeNet">{t('flows.metric.largeNet')}</option>
+              <option value="turnover">{t('flows.metric.turnover')}</option>
+            </select>
+          </label>
+        )}
 
         <label className="flex flex-col gap-1 text-sm">
           <span className="text-gray-400">{t('flows.filters.order')}</span>
@@ -298,6 +321,54 @@ export default function FlowRankings() {
           </div>
         ) : items.length === 0 ? (
           <div className="p-6 text-sm text-gray-400">{t('flows.empty')}</div>
+        ) : tab === 'funds' && fundType === 'otc' ? (
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm">
+              <thead className="bg-gray-950 text-gray-400">
+                <tr>
+                  <th className="px-4 py-3 text-left font-medium">{t('flows.table.rank')}</th>
+                  <th className="px-4 py-3 text-left font-medium">{t('flows.table.name')}</th>
+                  <th className="px-4 py-3 text-left font-medium">{t('flows.table.code')}</th>
+                  <th className="px-4 py-3 text-right font-medium">{t('flows.table.nav')}</th>
+                  <th className="px-4 py-3 text-right font-medium">{t('flows.table.changePct')}</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-800 bg-gray-900/20">
+                {items.map((row) => {
+                  const changeClass =
+                    typeof row.changePct === 'number'
+                      ? row.changePct > 0
+                        ? 'text-teal-400'
+                        : row.changePct < 0
+                          ? 'text-red-400'
+                          : 'text-gray-300'
+                      : 'text-gray-300';
+
+                  return (
+                    <tr key={`${row.rank}-${row.code}`} className="hover:bg-gray-900/40">
+                      <td className="px-4 py-3 text-gray-400">{row.rank}</td>
+                      <td className="px-4 py-3">
+                        <a
+                          className="text-gray-100 hover:text-teal-400 underline underline-offset-4"
+                          href={`https://fund.eastmoney.com/${encodeURIComponent(row.code)}.html`}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          {row.name || row.code}
+                        </a>
+                      </td>
+                      <td className="px-4 py-3 text-gray-400">{row.code || '-'}</td>
+                      <td className="px-4 py-3 text-right text-gray-200">
+                        {typeof row.price === 'number' ? row.price.toFixed(4) : '-'}
+                      </td>
+                      <td className={`px-4 py-3 text-right ${changeClass}`}>{formatPct(row.changePct)}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+            <div className="px-4 py-3 text-xs text-gray-500">{t('flows.otcNote')}</div>
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full text-sm">

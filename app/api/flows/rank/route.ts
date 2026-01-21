@@ -5,6 +5,7 @@ import {
   EASTMONEY_UT,
   type EastmoneyClistResponse,
   FS_FUND,
+  FS_FUND_OTC,
   FS_SECTOR,
   FS_STOCK,
   FLOW_FIDS_BY_WINDOW,
@@ -32,22 +33,26 @@ export async function GET(req: Request) {
   const window = pick<Window>(searchParams.get('window'), ['1', '3', '5', '10'], '1');
   const metric = pick<Metric>(
     searchParams.get('metric'),
-    ['netInflow', 'mainInflow', 'mainOutflow', 'turnover', 'superLargeNet', 'largeNet'],
+    ['netInflow', 'mainInflow', 'mainOutflow', 'turnover', 'superLargeNet', 'largeNet', 'price', 'changePct'],
     'netInflow'
   );
   const order = pick<Order>(searchParams.get('order'), ['desc', 'asc'], 'desc');
+  const fundType = pick<'etf' | 'otc'>(searchParams.get('fundType'), ['etf', 'otc'], 'etf');
   const page = Math.max(1, toInt(searchParams.get('page'), 1));
   const limit = Math.min(100, Math.max(1, toInt(searchParams.get('limit'), 20)));
 
-  const { fid, po } = resolveSort(metric, window, order);
+  const effectiveWindow = scope === 'fund' && fundType === 'otc' ? '1' : window;
+  const { fid, po } = resolveSort(metric, effectiveWindow, order);
   const fs =
     scope === 'sector'
       ? FS_SECTOR[sectorType]
       : scope === 'fund'
-        ? FS_FUND[market === 'sha' ? 'sha' : market === 'sza' ? 'sza' : 'all']
+        ? fundType === 'otc'
+          ? FS_FUND_OTC
+          : FS_FUND[market === 'sha' ? 'sha' : market === 'sza' ? 'sza' : 'all']
         : FS_STOCK[market];
-  const fields = buildFields(window);
-  const { mainNet, superLargeNet, largeNet } = FLOW_FIDS_BY_WINDOW[window];
+  const fields = buildFields(effectiveWindow);
+  const { mainNet, superLargeNet, largeNet } = FLOW_FIDS_BY_WINDOW[effectiveWindow];
 
   const url = new URL(EASTMONEY_CLIST_URL);
   url.searchParams.set('np', '1');
@@ -103,7 +108,7 @@ export async function GET(req: Request) {
 
     return NextResponse.json({
       ok: true,
-      query: { scope, market, sectorType, window, metric, order, page, limit },
+      query: { scope, market, sectorType, window: effectiveWindow, metric, order, fundType, page, limit },
       total,
       items,
     });

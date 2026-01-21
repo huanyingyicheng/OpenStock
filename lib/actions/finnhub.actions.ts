@@ -218,15 +218,11 @@ export const searchStocks = cache(async (query?: string): Promise<StockWithWatch
         const token = NEXT_PUBLIC_FINNHUB_API_KEY;
         const trimmed = typeof query === 'string' ? query.trim() : '';
 
-        // Support CN A-shares/indices via Eastmoney (no API key), since Finnhub doesn't cover them well.
-        if (trimmed && isChinaQuery(trimmed)) {
-            const cn = await searchChinaStocks(trimmed);
-            if (cn.length > 0) return cn;
-        }
-
-        if (!token) {
-            // If no token, provide a small set of defaults so search UI isn't empty.
-            if (!trimmed) {
+        // Fast path for initial UI render: avoid making many upstream requests just to populate "Popular" list.
+        // Full search still works when the user types a query.
+        if (!trimmed) {
+            // If no token, keep the CN-friendly defaults so the UI isn't empty.
+            if (!token) {
                 return [
                     { symbol: 'SSE:000001', name: '上证指数', exchange: 'SSE', type: 'Index', isInWatchlist: false },
                     { symbol: 'SZSE:399001', name: '深证成指', exchange: 'SZSE', type: 'Index', isInWatchlist: false },
@@ -235,6 +231,23 @@ export const searchStocks = cache(async (query?: string): Promise<StockWithWatch
                 ];
             }
 
+            // If token exists, return a lightweight popular list (no extra API calls).
+            return POPULAR_STOCK_SYMBOLS.slice(0, 10).map((sym) => ({
+                symbol: sym.toUpperCase(),
+                name: sym.toUpperCase(),
+                exchange: 'US',
+                type: 'Stock',
+                isInWatchlist: false,
+            }));
+        }
+
+        // Support CN A-shares/indices via Eastmoney (no API key), since Finnhub doesn't cover them well.
+        if (trimmed && isChinaQuery(trimmed)) {
+            const cn = await searchChinaStocks(trimmed);
+            if (cn.length > 0) return cn;
+        }
+
+        if (!token) {
             // If query isn't CN-like and no Finnhub token, return empty.
             console.error('Error in stock search:', new Error('FINNHUB API key is not configured'));
             return [];
@@ -243,41 +256,7 @@ export const searchStocks = cache(async (query?: string): Promise<StockWithWatch
         let results: FinnhubSearchResult[] = [];
 
         if (!trimmed) {
-            // Fetch top 10 popular symbols' profiles
-            const top = POPULAR_STOCK_SYMBOLS.slice(0, 10);
-            const profiles = await Promise.all(
-                top.map(async (sym) => {
-                    try {
-                        const url = `${FINNHUB_BASE_URL}/stock/profile2?symbol=${encodeURIComponent(sym)}&token=${token}`;
-                        // Revalidate every hour
-                        const profile = await fetchJSON<any>(url, 3600);
-                        return { sym, profile } as { sym: string; profile: any };
-                    } catch (e) {
-                        console.error('Error fetching profile2 for', sym, e);
-                        return { sym, profile: null } as { sym: string; profile: any };
-                    }
-                })
-            );
-
-            results = profiles
-                .map(({ sym, profile }) => {
-                    const symbol = sym.toUpperCase();
-                    const name: string | undefined = profile?.name || profile?.ticker || undefined;
-                    const exchange: string | undefined = profile?.exchange || undefined;
-                    if (!name) return undefined;
-                    const r: FinnhubSearchResult = {
-                        symbol,
-                        description: name,
-                        displaySymbol: symbol,
-                        type: 'Common Stock',
-                    };
-                    // We don't include exchange in FinnhubSearchResult type, so carry via mapping later using profile
-                    // To keep pipeline simple, attach exchange via closure map stage
-                    // We'll reconstruct exchange when mapping to final type
-                    (r as any).__exchange = exchange; // internal only
-                    return r;
-                })
-                .filter((x): x is FinnhubSearchResult => Boolean(x));
+            results = [];
         } else {
             const url = `${FINNHUB_BASE_URL}/search?q=${encodeURIComponent(trimmed)}&token=${token}`;
             const data = await fetchJSON<FinnhubSearchResponse>(url, 1800);

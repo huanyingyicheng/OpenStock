@@ -89,6 +89,15 @@ export const enMessages = {
       fundsTip: 'Tip: This list is matched by keyword; click to open the fund as a tradable symbol page.',
       constituents: 'Constituent stocks rankings',
     },
+    trendPage: {
+      title: 'Money Flow Trend',
+      subtitle: 'Trends for stocks/ETFs/sectors. Aggregation by day/week/month; day supports 1/3/5 rolling sums.',
+      open: 'Open trend page',
+      inputLabel: 'Symbol / Sector',
+      inputPlaceholder: 'e.g. SSE:600879 / SZSE:000001 / BK1036',
+      apply: 'View',
+      examples: 'Examples:',
+    },
     trend: {
       title: 'Recent Money Flow Trend',
       period: { day: 'Day', week: 'Week', month: 'Month' },
@@ -96,6 +105,7 @@ export const enMessages = {
       latestNet: 'Latest net',
       sumIn: 'Inflow sum',
       sumOut: 'Outflow sum',
+      legend: { net: 'Net', in: 'In', out: 'Out' },
       tip: 'Note: Data is based on Eastmoney daily money-flow kline. “Day (rolling)” supports rolling sums of 1/3/5 days.',
     },
   },

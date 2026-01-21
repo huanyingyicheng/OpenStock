@@ -119,7 +119,10 @@ export default function FlowTrendChart({
 
   const last = points.length ? points[points.length - 1] : null;
   const netValues = points.map((p) => p.net);
-  const domain = niceDomain(netValues);
+  // Plot inflow as positive, outflow as negative for a symmetric "in/out" view.
+  const inValues = points.map((p) => p.inflow);
+  const outValues = points.map((p) => -p.outflow);
+  const domain = niceDomain([...netValues, ...inValues, ...outValues]);
 
   const width = 900;
   const height = 220;
@@ -136,8 +139,13 @@ export default function FlowTrendChart({
     return padding.t + (1 - ratio) * innerH;
   };
 
-  const linePts = points.map((p, i) => ({ x: toX(i), y: toY(p.net) }));
-  const path = buildPath(linePts);
+  const netPts = points.map((p, i) => ({ x: toX(i), y: toY(p.net) }));
+  const inPts = points.map((p, i) => ({ x: toX(i), y: toY(p.inflow) }));
+  const outPts = points.map((p, i) => ({ x: toX(i), y: toY(-p.outflow) }));
+
+  const netPath = buildPath(netPts);
+  const inPath = buildPath(inPts);
+  const outPath = buildPath(outPts);
   const zeroY = toY(0);
 
   const inSum = points.reduce((acc, p) => acc + (p.inflow || 0), 0);
@@ -217,10 +225,12 @@ export default function FlowTrendChart({
             <svg viewBox={`0 0 ${width} ${height}`} className="w-full min-w-[680px]">
               <rect x="0" y="0" width={width} height={height} fill="transparent" />
               <line x1={padding.l} y1={zeroY} x2={width - padding.r} y2={zeroY} stroke="rgba(148,163,184,0.35)" strokeWidth="1" />
-              <path d={path} fill="none" stroke="rgb(45,212,191)" strokeWidth="2" />
+              <path d={inPath} fill="none" stroke="rgb(34,197,94)" strokeWidth="2" opacity="0.9" />
+              <path d={outPath} fill="none" stroke="rgb(248,113,113)" strokeWidth="2" opacity="0.9" />
+              <path d={netPath} fill="none" stroke="rgb(45,212,191)" strokeWidth="2.5" />
 
               {/* last point marker */}
-              <circle cx={linePts[linePts.length - 1].x} cy={linePts[linePts.length - 1].y} r="3.5" fill="rgb(45,212,191)" />
+              <circle cx={netPts[netPts.length - 1].x} cy={netPts[netPts.length - 1].y} r="3.5" fill="rgb(45,212,191)" />
 
               {/* x labels: first / mid / last */}
               <text x={padding.l} y={height - 8} fontSize="12" fill="rgba(148,163,184,0.9)">
@@ -239,6 +249,20 @@ export default function FlowTrendChart({
                 {points[points.length - 1].label}
               </text>
             </svg>
+            <div className="mt-2 flex flex-wrap gap-4 text-xs text-gray-400">
+              <span>
+                <span className="inline-block h-2 w-2 rounded-full bg-teal-400 mr-2" />
+                {t('flows.trend.legend.net')}
+              </span>
+              <span>
+                <span className="inline-block h-2 w-2 rounded-full bg-green-500 mr-2" />
+                {t('flows.trend.legend.in')}
+              </span>
+              <span>
+                <span className="inline-block h-2 w-2 rounded-full bg-red-400 mr-2" />
+                {t('flows.trend.legend.out')}
+              </span>
+            </div>
           </div>
         )}
       </div>
@@ -247,4 +271,3 @@ export default function FlowTrendChart({
     </div>
   );
 }
-

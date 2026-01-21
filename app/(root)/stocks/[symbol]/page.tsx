@@ -105,8 +105,9 @@ export default async function StockDetails({ params }: StockDetailsPageProps) {
 
     if (secId) {
         try {
-            cnQuote = await fetchEastmoneyQuote(secId);
-            cnKlines = await fetchEastmoneyKlines(secId, 20);
+            const [q, k] = await Promise.all([fetchEastmoneyQuote(secId), fetchEastmoneyKlines(secId, 20)]);
+            cnQuote = q;
+            cnKlines = k;
         } catch {
             cnQuote = null;
             cnKlines = [];

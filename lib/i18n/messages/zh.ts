@@ -89,6 +89,15 @@ export const zhMessages = {
       fundsTip: '提示：基金列表为关键词匹配结果，点击可作为可交易代码打开详情页。',
       constituents: '成分股排行',
     },
+    trendPage: {
+      title: '资金出入趋势',
+      subtitle: '支持个股/ETF/板块的主力净流入趋势（按日/周/月聚合），日支持 1/3/5 滚动。',
+      open: '打开趋势页',
+      inputLabel: '代码/板块',
+      inputPlaceholder: '例如：SSE:600879 / SZSE:000001 / BK1036',
+      apply: '查看',
+      examples: '示例：',
+    },
     trend: {
       title: '最近资金出入趋势',
       period: { day: '日', week: '周', month: '月' },
@@ -96,6 +105,7 @@ export const zhMessages = {
       latestNet: '最新净流入',
       sumIn: '区间流入合计',
       sumOut: '区间流出合计',
+      legend: { net: '净流入', in: '流入', out: '流出' },
       tip: '说明：数据来自东方财富资金流向日K；“日(滚动)”支持 1/3/5 日滚动合计。',
     },
   },

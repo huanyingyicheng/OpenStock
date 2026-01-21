@@ -69,7 +69,8 @@ export default async function SectorDetailPage({ params }: { params: Promise<{ c
 
   const sectorCode = (code ?? '').trim().toUpperCase();
   const sectorName = await getSectorName(sectorCode);
-  const relatedFunds = await getRelatedFundsByName(sectorName);
+  const relatedFundsPromise = getRelatedFundsByName(sectorName);
+  const relatedFunds = await relatedFundsPromise;
 
   return (
     <div className="space-y-6">

@@ -31,6 +31,8 @@
 
 OpenStock is an open-source alternative to expensive market platforms. Track real-time prices, set personalized alerts, and explore detailed company insights — built openly, for everyone, forever free.
 
+中文说明文档：[`README.zh-CN.md`](./README.zh-CN.md)
+
 Note: OpenStock is community-built and not a brokerage. Market data may be delayed based on provider rules and your configuration. Nothing here is financial advice.
 
 ## 📋 Table of Contents
